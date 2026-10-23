@@ -17,50 +17,75 @@
             --border-color: #2d2d2d;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-color); padding: 20px; }
-        header { text-align: center; margin-bottom: 30px; padding: 20px; background: var(--card-bg); border-radius: 12px; border-bottom: 4px solid var(--accent-orange); }
-        h1 { color: #fff; font-size: 1.8rem; margin-bottom: 5px; }
-        p.sub { color: var(--text-muted); font-size: 0.95rem; }
-        .controls { display: flex; justify-content: center; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; }
-        select, button { background: var(--card-bg); color: var(--text-color); border: 1px solid var(--border-color); padding: 10px 16px; border-radius: 8px; font-size: 0.95rem; cursor: pointer; }
+        body { background-color: var(--bg-color); color: var(--text-color); padding: 15px; }
+        
+        header { text-align: center; margin-bottom: 20px; padding: 15px; background: var(--card-bg); border-radius: 12px; border-bottom: 4px solid var(--accent-orange); }
+        h1 { color: #fff; font-size: 1.5rem; margin-bottom: 5px; }
+        p.sub { color: var(--text-muted); font-size: 0.85rem; }
+
+        .controls { display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
+        select, button, input[type="text"] { background: var(--card-bg); color: var(--text-color); border: 1px solid var(--border-color); padding: 10px 14px; border-radius: 8px; font-size: 0.9rem; cursor: pointer; }
+        input[type="text"] { cursor: text; width: 100%; max-width: 220px; }
+        input[type="text"]::placeholder { color: var(--text-muted); }
         button { background: var(--card-bg); color: var(--text-color); font-weight: 600; border: 1px solid var(--border-color); }
         button:hover { opacity: 0.9; }
         button.active-view { background: var(--accent-green); color: #fff; border-color: var(--accent-green); }
-        .container { max-width: 900px; margin: 0 auto; display: grid; gap: 20px; }
-        .matchday-card, .ranking-card { background: var(--card-bg); border-radius: 12px; padding: 20px; border: 1px solid var(--border-color); }
-        .matchday-title { font-size: 1.2rem; color: var(--accent-green); margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
-        .matches-grid { display: grid; gap: 12px; }
-        .match-item { background: #161616; padding: 12px 16px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #222; transition: all 0.2s ease; }
+
+        .container { max-width: 900px; margin: 0 auto; display: grid; gap: 15px; }
+        .matchday-card, .ranking-card { background: var(--card-bg); border-radius: 12px; padding: 15px; border: 1px solid var(--border-color); }
+        .matchday-title { font-size: 1.1rem; color: var(--accent-green); margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        
+        .matches-grid { display: grid; gap: 10px; }
+        .match-item { background: #161616; padding: 10px 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #222; transition: all 0.2s ease; gap: 8px; }
         
         .match-item.delayed { border-color: var(--accent-red); background-color: rgba(239, 68, 68, 0.08); }
         .match-item.delayed .match-info { color: var(--accent-red); font-weight: bold; }
         .match-item.delayed .score-box { border-color: var(--accent-red); color: var(--accent-red); }
 
-        .match-info { font-size: 0.85rem; color: var(--text-muted); min-width: 90px; }
-        .match-teams { display: flex; align-items: center; gap: 15px; flex: 1; justify-content: center; font-weight: 600; }
-        .team { text-align: center; flex: 1; }
+        .match-info { font-size: 0.75rem; color: var(--text-muted); min-width: 75px; text-align: center; }
+        .match-teams { display: flex; align-items: center; gap: 8px; flex: 1; justify-content: space-between; font-weight: 600; font-size: 0.9rem; }
+        .team { text-align: center; flex: 1; word-break: break-word; }
         .team.home { text-align: right; }
         .team.away { text-align: left; }
-        .score-box { background: #111; border: 1px solid var(--border-color); padding: 6px 14px; border-radius: 6px; font-size: 1.1rem; font-weight: bold; color: var(--accent-green); min-width: 70px; text-align: center; }
+        .score-box { background: #111; border: 1px solid var(--border-color); padding: 5px 10px; border-radius: 6px; font-size: 1rem; font-weight: bold; color: var(--accent-green); min-width: 55px; text-align: center; flex-shrink: 0; }
         .loading { text-align: center; padding: 40px; color: var(--text-muted); }
 
         /* Estilos da Tabela de Classificação */
-        table.ranking-table { width: 100%; border-collapse: collapse; margin-top: 10px; text-align: left; }
-        table.ranking-table th, table.ranking-table td { padding: 12px 15px; border-bottom: 1px solid var(--border-color); font-size: 0.95rem; }
+        table.ranking-table { width: 100%; border-collapse: collapse; margin-top: 5px; text-align: left; font-size: 0.9rem; }
+        table.ranking-table th, table.ranking-table td { padding: 10px 8px; border-bottom: 1px solid var(--border-color); }
         table.ranking-table th { background: #161616; color: var(--accent-green); font-weight: 600; }
-        table.ranking-table tr:hover { background: rgba(255,255,255,0.02); }
+        
+        /* Cores suaves para G12 (Verde) e Abaixo (Vermelho leve) */
+        tr.qualified-zone { background-color: rgba(16, 185, 129, 0.07); }
+        tr.qualified-zone:hover { background-color: rgba(16, 185, 129, 0.12); }
+        
+        tr.eliminated-zone { background-color: rgba(239, 68, 68, 0.05); }
+        tr.eliminated-zone:hover { background-color: rgba(239, 68, 68, 0.1); }
+
         .clickable-stat { color: var(--accent-green); cursor: pointer; text-decoration: underline; font-weight: bold; }
         .clickable-stat:hover { color: #34d399; }
 
         /* Estilos do Modal */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 1000; display: none; }
-        .modal-content { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; width: 90%; max-width: 500px; padding: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); position: relative; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
-        .modal-header h3 { color: #fff; font-size: 1.2rem; }
-        .close-modal { background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; padding: 0; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 1000; display: none; padding: 15px; }
+        .modal-content { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; width: 100%; max-width: 450px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); position: relative; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
+        .modal-header h3 { color: #fff; font-size: 1.1rem; }
+        .close-modal { background: none; border: none; color: var(--text-muted); font-size: 1.4rem; cursor: pointer; padding: 0; }
         .close-modal:hover { color: #fff; }
-        .modal-body { max-height: 300px; overflow-y: auto; display: grid; gap: 8px; }
-        .modal-item { background: #161616; padding: 10px 14px; border-radius: 6px; border: 1px solid #222; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; }
+        .modal-body { max-height: 280px; overflow-y: auto; display: grid; gap: 8px; }
+        .modal-item { background: #161616; padding: 10px; border-radius: 6px; border: 1px solid #222; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; }
+
+        /* Ajustes Mobile Responsivo */
+        @media (max-width: 600px) {
+            body { padding: 8px; }
+            header { padding: 12px; margin-bottom: 15px; }
+            h1 { font-size: 1.3rem; }
+            .controls { flex-direction: column; width: 100%; gap: 8px; }
+            .controls select, .controls input[type="text"], .controls button { width: 100%; max-width: 100%; }
+            .match-teams { font-size: 0.8rem; gap: 5px; }
+            .score-box { min-width: 48px; padding: 4px 6px; font-size: 0.9rem; }
+            table.ranking-table th, table.ranking-table td { padding: 8px 6px; font-size: 0.8rem; }
+        }
     </style>
 </head>
 <body>
@@ -71,11 +96,17 @@
     </header>
 
     <div class="controls">
-        <button id="btnMatches" class="active-view" onclick="switchView('matches')">📅 Confrontos</button>
-        <button id="btnRanking" onclick="switchView('ranking')">🏆 Classificação</button>
-        <select id="filterRodada" onchange="renderMatches()">
+        <div style="display: flex; gap: 8px; width: 100%; max-width: 400px; justify-content: center;">
+            <button id="btnMatches" class="active-view" style="flex:1;" onclick="switchView('matches')">📅 Confrontos</button>
+            <button id="btnRanking" style="flex:1;" onclick="switchView('ranking')">🏆 Classificação</button>
+        </div>
+        
+        <select id="filterRodada" onchange="renderMatches()" style="flex: 1; min-width: 140px;">
             <option value="all">Todas as Rodadas</option>
         </select>
+
+        <input type="text" id="searchJogador" placeholder="🔍 Pesquisar jogador..." oninput="renderMatches()">
+
         <button onclick="carregarDados()" style="background: var(--accent-orange); color:#fff; border:none;">🔄 Atualizar</button>
     </div>
 
@@ -117,7 +148,7 @@
             document.getElementById('matchesContainer').innerHTML = `
                 <div class="matchday-card" style="text-align: center; color: #ff3c00;">
                     <h3>⚠️ Erro ao carregar placar.json</h3>
-                    <p style="color: #9ca3af; margin-top: 10px;">Certifique-se de que o arquivo <code>placar.json</code> está na mesma pasta e rodando em um servidor local (Live Server).</p>
+                    <p style="color: #9ca3af; margin-top: 10px;">Certifique-se de que o arquivo <code>placar.json</code> está na mesma pasta e rodando em um servidor local.</p>
                 </div>`;
         }
     }
@@ -140,7 +171,10 @@
         document.getElementById('btnRanking').classList.toggle('active-view', view === 'ranking');
         
         const filterSelect = document.getElementById('filterRodada');
-        filterSelect.style.display = (view === 'ranking') ? 'none' : 'inline-block';
+        const searchInput = document.getElementById('searchJogador');
+        
+        filterSelect.style.display = (view === 'ranking') ? 'none' : 'block';
+        searchInput.style.display = (view === 'ranking') ? 'none' : 'block';
         
         renderCurrentView();
     }
@@ -172,15 +206,22 @@
 
     function renderMatches() {
         const container = document.getElementById('matchesContainer');
-        const filtro = document.getElementById('filterRodada').value;
+        const filtroRodada = document.getElementById('filterRodada').value;
+        const termoBusca = document.getElementById('searchJogador').value.toLowerCase().trim();
         container.innerHTML = '';
 
-        const dadosFiltrados = filtro === 'all' 
-            ? campeonatoData 
-            : campeonatoData.filter(item => item.rodada == filtro);
+        const dadosFiltrados = campeonatoData.filter(item => {
+            const atendeRodada = (filtroRodada === 'all' || item.rodada == filtroRodada);
+            
+            const p1Nome = (jogadores[item.p1] || `Jogador ${item.p1}`).toLowerCase();
+            const p2Nome = (jogadores[item.p2] || `Jogador ${item.p2}`).toLowerCase();
+            const atendeBusca = (!termoBusca || p1Nome.includes(termoBusca) || p2Nome.includes(termoBusca));
+
+            return atendeRodada && atendeBusca;
+        });
 
         if (dadosFiltrados.length === 0) {
-            container.innerHTML = '<div class="loading">Nenhum jogo encontrado.</div>';
+            container.innerHTML = '<div class="loading">Nenhum jogo encontrado para os filtros selecionados.</div>';
             return;
         }
 
@@ -213,7 +254,7 @@
                     <div class="match-item ${delayedClass}">
                         <div class="match-info">
                             🕒 ${m.horario}
-                            ${isDelayed ? '<br><span style="font-size:0.75rem; color:var(--accent-red);">⚠️ Atrasado</span>' : ''}
+                            ${isDelayed ? '<br><span style="font-size:0.65rem; color:var(--accent-red);">⚠️ Atrasado</span>' : ''}
                         </div>
                         <div class="match-teams">
                             <div class="team home">${p1Nome}</div>
@@ -274,7 +315,7 @@
         let html = `
             <div class="ranking-card">
                 <div class="matchday-title">
-                    <span>🏆 Tabela de Classificação (Vitória = 2 pts)</span>
+                    <span>🏆 Classificação (G-12 na Zona de Classificação)</span>
                 </div>
                 <div style="overflow-x: auto;">
                     <table class="ranking-table">
@@ -292,13 +333,17 @@
         `;
 
         rankingArray.forEach((item, index) => {
-            let posicaoEmoji = `${index + 1}º`;
+            const posicao = index + 1;
+            let posicaoEmoji = `${posicao}º`;
             if (index === 0) posicaoEmoji = '🥇 1º';
             else if (index === 1) posicaoEmoji = '🥈 2º';
             else if (index === 2) posicaoEmoji = '🥉 3º';
 
+            // Até 12º classificado fica verde claro, abaixo fica vermelho claro
+            const rowClass = (posicao <= 12) ? 'qualified-zone' : 'eliminated-zone';
+
             html += `
-                <tr>
+                <tr class="${rowClass}">
                     <td><strong>${posicaoEmoji}</strong></td>
                     <td><strong>${item.nome}</strong></td>
                     <td><strong style="color:var(--accent-green);">${item.pontos}</strong></td>
@@ -352,7 +397,7 @@
                     modalBody.innerHTML += `
                         <div class="modal-item">
                             <span>Venceu <strong>${v.adv}</strong> (${v.placar})</span>
-                            <span style="color:var(--text-muted); font-size:0.8rem;">${v.info}</span>
+                            <span style="color:var(--text-muted); font-size:0.75rem;">${v.info}</span>
                         </div>
                     `;
                 });
@@ -366,7 +411,7 @@
                     modalBody.innerHTML += `
                         <div class="modal-item">
                             <span>Perdeu para <strong>${d.adv}</strong> (${d.placar})</span>
-                            <span style="color:var(--text-muted); font-size:0.8rem;">${d.info}</span>
+                            <span style="color:var(--text-muted); font-size:0.75rem;">${d.info}</span>
                         </div>
                     `;
                 });
