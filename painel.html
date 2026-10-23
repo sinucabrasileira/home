@@ -16,16 +16,18 @@
             --border-color: #2d2d2d;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-color); padding: 20px; }
-        header { text-align: center; margin-bottom: 30px; padding: 20px; background: var(--card-bg); border-radius: 12px; border-bottom: 4px solid var(--accent-green); }
-        h1 { color: #fff; font-size: 1.8rem; margin-bottom: 5px; }
-        .controls { display: flex; justify-content: center; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; align-items: center; }
-        select, button, input[type="text"] { background: var(--card-bg); color: var(--text-color); border: 1px solid var(--border-color); padding: 10px 16px; border-radius: 8px; font-size: 0.95rem; cursor: pointer; }
-        input[type="text"] { cursor: text; }
+        body { background-color: var(--bg-color); color: var(--text-color); padding: 15px; }
+        
+        header { text-align: center; margin-bottom: 20px; padding: 15px; background: var(--card-bg); border-radius: 12px; border-bottom: 4px solid var(--accent-green); }
+        h1 { color: #fff; font-size: 1.5rem; margin-bottom: 5px; }
+        
+        .controls { display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
+        select, button, input[type="text"] { background: var(--card-bg); color: var(--text-color); border: 1px solid var(--border-color); padding: 10px 14px; border-radius: 8px; font-size: 0.9rem; cursor: pointer; }
+        input[type="text"] { cursor: text; width: 100%; max-width: 220px; }
         input[type="text"]::placeholder { color: var(--text-muted); }
+        
         button.btn-main { background: var(--accent-green); color: #fff; font-weight: 600; border: none; }
-        button.btn-upload { background: #3b82f6; color: #fff; font-weight: 600; border: none; }
-        button:hover, label.btn-upload:hover { opacity: 0.9; }
+        button:hover, label.btn-upload-label:hover { opacity: 0.9; }
         
         /* Botão estilizado para upload de arquivo */
         .file-upload-wrapper {
@@ -44,33 +46,58 @@
         .btn-upload-label {
             background: #3b82f6;
             color: #fff;
-            padding: 10px 16px;
+            padding: 10px 14px;
             border-radius: 8px;
             font-weight: 600;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             display: inline-block;
             cursor: pointer;
+            text-align: center;
         }
 
-        .container { max-width: 950px; margin: 0 auto; display: grid; gap: 20px; }
-        .matchday-card { background: var(--card-bg); border-radius: 12px; padding: 20px; border: 1px solid var(--border-color); }
-        .matchday-title { font-size: 1.2rem; color: var(--accent-orange); margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
-        .matches-grid { display: grid; gap: 12px; }
-        .match-item { background: #161616; padding: 12px 16px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #222; flex-wrap: wrap; gap: 10px; }
-        .match-info { font-size: 0.85rem; color: var(--text-muted); width: 110px; }
-        .match-teams { display: flex; align-items: center; gap: 10px; flex: 1; justify-content: center; font-weight: 600; flex-wrap: wrap; }
-        .team-group { display: flex; align-items: center; gap: 8px; }
-        .btn-score { background: #2a2a2a; color: #fff; border: 1px solid var(--border-color); padding: 6px 12px; font-weight: bold; border-radius: 6px; cursor: pointer; }
+        .container { max-width: 950px; margin: 0 auto; display: grid; gap: 15px; }
+        .matchday-card { background: var(--card-bg); border-radius: 12px; padding: 15px; border: 1px solid var(--border-color); }
+        .matchday-title { font-size: 1.1rem; color: var(--accent-orange); margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
+        
+        .matches-grid { display: grid; gap: 10px; }
+        .match-item { background: #161616; padding: 10px 12px; border-radius: 8px; display: flex; flex-direction: column; gap: 8px; border: 1px solid #222; }
+        
+        .match-header-info { display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: var(--text-muted); border-bottom: 1px solid #222; padding-bottom: 4px; }
+        
+        .match-teams { display: flex; align-items: center; justify-content: space-between; gap: 6px; width: 100%; }
+        
+        .team-name { font-size: 0.85rem; font-weight: 600; flex: 1; word-break: break-word; }
+        .team-name.home { text-align: right; }
+        .team-name.away { text-align: left; }
+
+        .score-control-group { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+        
+        .btn-score { background: #2a2a2a; color: #fff; border: 1px solid var(--border-color); width: 32px; height: 32px; font-weight: bold; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
         .btn-score:hover { background: var(--accent-orange); border-color: var(--accent-orange); }
-        .score-display { background: #111; border: 1px solid var(--border-color); padding: 6px 14px; border-radius: 6px; font-size: 1.1rem; font-weight: bold; color: var(--accent-green); min-width: 40px; text-align: center; }
-        .save-bar { position: fixed; bottom: 20px; right: 20px; background: var(--accent-green); color: #fff; padding: 15px 25px; border-radius: 50px; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.5); cursor: pointer; z-index: 1000; border: none; font-size: 1rem; display: flex; align-items: center; gap: 8px; }
+        
+        .score-display { background: #111; border: 1px solid var(--border-color); padding: 4px 10px; border-radius: 6px; font-size: 1rem; font-weight: bold; color: var(--accent-green); min-width: 36px; text-align: center; }
+
+        .save-bar { position: fixed; bottom: 15px; right: 15px; background: var(--accent-green); color: #fff; padding: 12px 20px; border-radius: 50px; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.5); cursor: pointer; z-index: 1000; border: none; font-size: 0.9rem; display: flex; align-items: center; gap: 8px; }
+
+        /* Ajustes Mobile Responsivo */
+        @media (max-width: 600px) {
+            body { padding: 8px; }
+            header { padding: 12px; margin-bottom: 15px; }
+            h1 { font-size: 1.3rem; }
+            .controls { flex-direction: column; width: 100%; gap: 8px; }
+            .controls select, .controls input[type="text"], .controls button, .file-upload-wrapper, .btn-upload-label { width: 100%; max-width: 100%; display: block; text-align: center; }
+            .team-name { font-size: 0.8rem; }
+            .score-display { min-width: 32px; padding: 4px 6px; font-size: 0.9rem; }
+            .btn-score { width: 30px; height: 30px; font-size: 0.9rem; }
+            .save-bar { bottom: 10px; right: 10px; left: 10px; justify-content: center; border-radius: 12px; }
+        }
     </style>
 </head>
 <body>
 
     <header>
         <h1>🛠️ Painel Administrativo</h1>
-        <p style="color: var(--text-muted)">Gerencie os placares do Campeonato de Sinuca</p>
+        <p style="color: var(--text-muted); font-size: 0.85rem;">Gerencie os placares do Campeonato de Sinuca</p>
     </header>
 
     <div class="controls">
@@ -88,7 +115,7 @@
         <button class="btn-main" onclick="baixarJSON()">📥 Baixar Atualizado</button>
     </div>
 
-    <div class="container" id="adminContainer">
+    <div class="container" id="adminContainer" style="padding-bottom: 60px;">
         <div style="text-align:center; padding:40px;">Carregando painel...</div>
     </div>
 
@@ -121,7 +148,6 @@
         }
     }
 
-    // Função para ler o arquivo JSON enviado via upload
     function carregarJSONLocal(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -169,12 +195,11 @@
 
         const grupos = {};
         campeonatoData.forEach((m, indexGlobal) => {
-            m._idOriginal = indexGlobal; // Guarda o índice real
+            m._idOriginal = indexGlobal;
 
             const p1Nome = (jogadores[m.p1] || `Jogador ${m.p1}`).toLowerCase();
             const p2Nome = (jogadores[m.p2] || `Jogador ${m.p2}`).toLowerCase();
 
-            // Filtros combinados: Rodada e Nome do Jogador
             const atendeRodada = (filtroRodada === 'all' || m.rodada == filtroRodada);
             const atendeBusca = (!termoBusca || p1Nome.includes(termoBusca) || p2Nome.includes(termoBusca));
 
@@ -204,21 +229,27 @@
 
                 cardHtml += `
                     <div class="match-item">
-                        <div class="match-info">🕒 ${m.horario}</div>
+                        <div class="match-header-info">
+                            <span>🕒 ${m.horario}</span>
+                        </div>
                         <div class="match-teams">
-                            <span style="min-width: 90px; text-align: right;">${p1Nome}</span>
-                            <div class="team-group">
+                            <span class="team-name home">${p1Nome}</span>
+                            
+                            <div class="score-control-group">
                                 <button class="btn-score" onclick="alterarPlacar(${idx}, 1, -1)">-</button>
                                 <span class="score-display">${m.g1}</span>
                                 <button class="btn-score" onclick="alterarPlacar(${idx}, 1, 1)">+</button>
                             </div>
-                            <span>×</span>
-                            <div class="team-group">
+
+                            <span style="color:var(--text-muted); font-size: 0.8rem;">×</span>
+
+                            <div class="score-control-group">
                                 <button class="btn-score" onclick="alterarPlacar(${idx}, 2, -1)">-</button>
                                 <span class="score-display">${m.g2}</span>
                                 <button class="btn-score" onclick="alterarPlacar(${idx}, 2, 1)">+</button>
                             </div>
-                            <span style="min-width: 90px; text-align: left;">${p2Nome}</span>
+
+                            <span class="team-name away">${p2Nome}</span>
                         </div>
                     </div>
                 `;
