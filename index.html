@@ -16,7 +16,33 @@
             --text-muted: #9ca3af;
             --border-color: #2d2d2d;
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+
+        /* Barra de rolagem fina estilo Webkit (Chrome, Edge, Safari) */
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-color);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-orange);
+        }
+
+        /* Barra de rolagem para Firefox */
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: #333 var(--bg-color);
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+            font-family: 'Inter', sans-serif;
+        }
+
         body { background-color: var(--bg-color); color: var(--text-color); padding: 15px; }
         
         header { text-align: center; margin-bottom: 20px; padding: 15px; background: var(--card-bg); border-radius: 12px; border-bottom: 4px solid var(--accent-orange); }
@@ -343,7 +369,6 @@
 
         rankingArray.forEach((item, index) => {
             const posicao = index + 1;
-            // Apenas o 1º lugar recebe a medalha de ouro
             let posicaoEmoji = (index === 0) ? '🥇 1º' : `${posicao}º`;
 
             const rowClass = (posicao <= 12) ? 'qualified-zone' : 'eliminated-zone';
