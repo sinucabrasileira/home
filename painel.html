@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Controle - Campeonato de Sinuca</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --accent-green: #10b981;
+            --accent-orange: #ff3c00;
+            --text-color: #e0e0e0;
+            --text-muted: #9ca3af;
+            --border-color: #2d2d2d;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-color); padding: 20px; }
+        header { text-align: center; margin-bottom: 30px; padding: 20px; background: var(--card-bg); border-radius: 12px; border-bottom: 4px solid var(--accent-green); }
+        h1 { color: #fff; font-size: 1.8rem; margin-bottom: 5px; }
+        .controls { display: flex; justify-content: center; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; align-items: center; }
+        select, button, input[type="text"] { background: var(--card-bg); color: var(--text-color); border: 1px solid var(--border-color); padding: 10px 16px; border-radius: 8px; font-size: 0.95rem; cursor: pointer; }
+        input[type="text"] { cursor: text; }
+        input[type="text"]::placeholder { color: var(--text-muted); }
+        button.btn-main { background: var(--accent-green); color: #fff; font-weight: 600; border: none; }
+        button.btn-upload { background: #3b82f6; color: #fff; font-weight: 600; border: none; }
+        button:hover, label.btn-upload:hover { opacity: 0.9; }
+        
+        /* Botão estilizado para upload de arquivo */
+        .file-upload-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+        .file-upload-wrapper input[type=file] {
+            font-size: 100px;
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+        .btn-upload-label {
+            background: #3b82f6;
+            color: #fff;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            display: inline-block;
+            cursor: pointer;
+        }
+
+        .container { max-width: 950px; margin: 0 auto; display: grid; gap: 20px; }
+        .matchday-card { background: var(--card-bg); border-radius: 12px; padding: 20px; border: 1px solid var(--border-color); }
+        .matchday-title { font-size: 1.2rem; color: var(--accent-orange); margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
+        .matches-grid { display: grid; gap: 12px; }
+        .match-item { background: #161616; padding: 12px 16px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #222; flex-wrap: wrap; gap: 10px; }
+        .match-info { font-size: 0.85rem; color: var(--text-muted); width: 110px; }
+        .match-teams { display: flex; align-items: center; gap: 10px; flex: 1; justify-content: center; font-weight: 600; flex-wrap: wrap; }
+        .team-group { display: flex; align-items: center; gap: 8px; }
+        .btn-score { background: #2a2a2a; color: #fff; border: 1px solid var(--border-color); padding: 6px 12px; font-weight: bold; border-radius: 6px; cursor: pointer; }
+        .btn-score:hover { background: var(--accent-orange); border-color: var(--accent-orange); }
+        .score-display { background: #111; border: 1px solid var(--border-color); padding: 6px 14px; border-radius: 6px; font-size: 1.1rem; font-weight: bold; color: var(--accent-green); min-width: 40px; text-align: center; }
+        .save-bar { position: fixed; bottom: 20px; right: 20px; background: var(--accent-green); color: #fff; padding: 15px 25px; border-radius: 50px; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.5); cursor: pointer; z-index: 1000; border: none; font-size: 1rem; display: flex; align-items: center; gap: 8px; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🛠️ Painel Administrativo</h1>
+        <p style="color: var(--text-muted)">Gerencie os placares do Campeonato de Sinuca</p>
+    </header>
+
+    <div class="controls">
+        <select id="filterRodada" onchange="renderAdminMatches()">
+            <option value="all">Todas as Rodadas</option>
+        </select>
+        
+        <input type="text" id="searchJogador" placeholder="🔍 Pesquisar jogador..." oninput="renderAdminMatches()">
+
+        <div class="file-upload-wrapper">
+            <label class="btn-upload-label">📂 Carregar placar.json</label>
+            <input type="file" id="jsonFileInput" accept=".json" onchange="carregarJSONLocal(event)">
+        </div>
+
+        <button class="btn-main" onclick="baixarJSON()">📥 Baixar Atualizado</button>
+    </div>
+
+    <div class="container" id="adminContainer">
+        <div style="text-align:center; padding:40px;">Carregando painel...</div>
+    </div>
+
+    <button class="save-bar" onclick="baixarJSON()">💾 Salvar / Baixar JSON</button>
+
+<script>
+    const jogadores = {
+        1: "Josué", 2: "Dirciano", 3: "Léo", 4: "Rafael", 5: "Bill",
+        6: "Fernando", 7: "Marq. Bananal", 8: "Denis", 9: "Gerson", 10: "Tiago",
+        11: "Tiradentes", 12: "Zeca", 13: "Walmir", 14: "Deí", 15: "Rodrigo MT",
+        16: "Luciano", 17: "Marquinho", 18: "Gabriel", 19: "Juninho", 20: "Tarcísio",
+        21: "Mateus", 22: "Samuel", 23: "Lorinho", 24: "Marcos"
+    };
+
+    let campeonatoData = [];
+
+    async function carregarDados() {
+        try {
+            const response = await fetch('placar.json?' + new Date().getTime());
+            if (!response.ok) throw new Error();
+            campeonatoData = await response.json();
+            popularFiltro();
+            renderAdminMatches();
+        } catch (error) {
+            document.getElementById('adminContainer').innerHTML = `
+                <div class="matchday-card" style="text-align: center; color: var(--accent-orange);">
+                    <h3>⚠️ Arquivo placar.json não carregado automaticamente</h3>
+                    <p style="color: var(--text-muted); margin-top: 10px;">Use o botão <strong>"Carregar placar.json"</strong> acima para selecionar o arquivo do seu computador.</p>
+                </div>`;
+        }
+    }
+
+    // Função para ler o arquivo JSON enviado via upload
+    function carregarJSONLocal(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                campeonatoData = JSON.parse(e.target.result);
+                popularFiltro();
+                renderAdminMatches();
+                alert("Arquivo 'placar.json' carregado com sucesso!");
+            } catch (err) {
+                alert("Erro ao ler o arquivo JSON. Certifique-se de que é um arquivo válido.");
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    function popularFiltro() {
+        const select = document.getElementById('filterRodada');
+        const rodadasUnicas = [...new Set(campeonatoData.map(item => item.rodada))];
+        const valorAtual = select.value;
+        
+        select.innerHTML = '<option value="all">Todas as Rodadas</option>';
+        rodadasUnicas.forEach(r => {
+            select.innerHTML += `<option value="${r}">Rodada ${r}</option>`;
+        });
+        select.value = valorAtual;
+    }
+
+    function alterarPlacar(indexGlobal, time, valor) {
+        if (time === 1) {
+            campeonatoData[indexGlobal].g1 = Math.max(0, campeonatoData[indexGlobal].g1 + valor);
+        } else {
+            campeonatoData[indexGlobal].g2 = Math.max(0, campeonatoData[indexGlobal].g2 + valor);
+        }
+        renderAdminMatches();
+    }
+
+    function renderAdminMatches() {
+        const container = document.getElementById('adminContainer');
+        const filtroRodada = document.getElementById('filterRodada').value;
+        const termoBusca = document.getElementById('searchJogador').value.toLowerCase().trim();
+        container.innerHTML = '';
+
+        const grupos = {};
+        campeonatoData.forEach((m, indexGlobal) => {
+            m._idOriginal = indexGlobal; // Guarda o índice real
+
+            const p1Nome = (jogadores[m.p1] || `Jogador ${m.p1}`).toLowerCase();
+            const p2Nome = (jogadores[m.p2] || `Jogador ${m.p2}`).toLowerCase();
+
+            // Filtros combinados: Rodada e Nome do Jogador
+            const atendeRodada = (filtroRodada === 'all' || m.rodada == filtroRodada);
+            const atendeBusca = (!termoBusca || p1Nome.includes(termoBusca) || p2Nome.includes(termoBusca));
+
+            if (atendeRodada && atendeBusca) {
+                const key = `Rodada ${m.rodada} - ${m.dia} (${m.data})`;
+                if (!grupos[key]) grupos[key] = [];
+                grupos[key].push(m);
+            }
+        });
+
+        if (Object.keys(grupos).length === 0) {
+            container.innerHTML = `<div class="matchday-card" style="text-align:center; color:var(--text-muted);">Nenhum jogo encontrado para os filtros selecionados.</div>`;
+            return;
+        }
+
+        for (let [key, matches] of Object.entries(grupos)) {
+            let cardHtml = `
+                <div class="matchday-card">
+                    <div class="matchday-title">📅 ${key}</div>
+                    <div class="matches-grid">
+            `;
+
+            matches.forEach(m => {
+                const p1Nome = jogadores[m.p1] || `Jogador ${m.p1}`;
+                const p2Nome = jogadores[m.p2] || `Jogador ${m.p2}`;
+                const idx = m._idOriginal;
+
+                cardHtml += `
+                    <div class="match-item">
+                        <div class="match-info">🕒 ${m.horario}</div>
+                        <div class="match-teams">
+                            <span style="min-width: 90px; text-align: right;">${p1Nome}</span>
+                            <div class="team-group">
+                                <button class="btn-score" onclick="alterarPlacar(${idx}, 1, -1)">-</button>
+                                <span class="score-display">${m.g1}</span>
+                                <button class="btn-score" onclick="alterarPlacar(${idx}, 1, 1)">+</button>
+                            </div>
+                            <span>×</span>
+                            <div class="team-group">
+                                <button class="btn-score" onclick="alterarPlacar(${idx}, 2, -1)">-</button>
+                                <span class="score-display">${m.g2}</span>
+                                <button class="btn-score" onclick="alterarPlacar(${idx}, 2, 1)">+</button>
+                            </div>
+                            <span style="min-width: 90px; text-align: left;">${p2Nome}</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            cardHtml += `</div></div>`;
+            container.innerHTML += cardHtml;
+        }
+    }
+
+    function baixarJSON() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(campeonatoData, null, 2));
+        const downloadAnchor = document.createElement('a');
+        downloadAnchor.setAttribute("href", dataStr);
+        downloadAnchor.setAttribute("download", "placar.json");
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        downloadAnchor.remove();
+        alert("Arquivo 'placar.json' gerado com sucesso! Salve-o na mesma pasta do projeto substituindo o anterior.");
+    }
+
+    carregarDados();
+</script>
+</body>
+</html>

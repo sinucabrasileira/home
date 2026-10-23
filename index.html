@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campeonato de Sinuca - Bar do Tiradentes</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --accent-green: #10b981;
+            --accent-orange: #ff3c00;
+            --accent-red: #ef4444;
+            --text-color: #e0e0e0;
+            --text-muted: #9ca3af;
+            --border-color: #2d2d2d;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-color); padding: 20px; }
+        header { text-align: center; margin-bottom: 30px; padding: 20px; background: var(--card-bg); border-radius: 12px; border-bottom: 4px solid var(--accent-orange); }
+        h1 { color: #fff; font-size: 1.8rem; margin-bottom: 5px; }
+        p.sub { color: var(--text-muted); font-size: 0.95rem; }
+        .controls { display: flex; justify-content: center; gap: 10px; margin-bottom: 25px; flex-wrap: wrap; }
+        select, button { background: var(--card-bg); color: var(--text-color); border: 1px solid var(--border-color); padding: 10px 16px; border-radius: 8px; font-size: 0.95rem; cursor: pointer; }
+        button { background: var(--card-bg); color: var(--text-color); font-weight: 600; border: 1px solid var(--border-color); }
+        button:hover { opacity: 0.9; }
+        button.active-view { background: var(--accent-green); color: #fff; border-color: var(--accent-green); }
+        .container { max-width: 900px; margin: 0 auto; display: grid; gap: 20px; }
+        .matchday-card, .ranking-card { background: var(--card-bg); border-radius: 12px; padding: 20px; border: 1px solid var(--border-color); }
+        .matchday-title { font-size: 1.2rem; color: var(--accent-green); margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .matches-grid { display: grid; gap: 12px; }
+        .match-item { background: #161616; padding: 12px 16px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #222; transition: all 0.2s ease; }
+        
+        .match-item.delayed { border-color: var(--accent-red); background-color: rgba(239, 68, 68, 0.08); }
+        .match-item.delayed .match-info { color: var(--accent-red); font-weight: bold; }
+        .match-item.delayed .score-box { border-color: var(--accent-red); color: var(--accent-red); }
+
+        .match-info { font-size: 0.85rem; color: var(--text-muted); min-width: 90px; }
+        .match-teams { display: flex; align-items: center; gap: 15px; flex: 1; justify-content: center; font-weight: 600; }
+        .team { text-align: center; flex: 1; }
+        .team.home { text-align: right; }
+        .team.away { text-align: left; }
+        .score-box { background: #111; border: 1px solid var(--border-color); padding: 6px 14px; border-radius: 6px; font-size: 1.1rem; font-weight: bold; color: var(--accent-green); min-width: 70px; text-align: center; }
+        .loading { text-align: center; padding: 40px; color: var(--text-muted); }
+
+        /* Estilos da Tabela de Classificação */
+        table.ranking-table { width: 100%; border-collapse: collapse; margin-top: 10px; text-align: left; }
+        table.ranking-table th, table.ranking-table td { padding: 12px 15px; border-bottom: 1px solid var(--border-color); font-size: 0.95rem; }
+        table.ranking-table th { background: #161616; color: var(--accent-green); font-weight: 600; }
+        table.ranking-table tr:hover { background: rgba(255,255,255,0.02); }
+        .clickable-stat { color: var(--accent-green); cursor: pointer; text-decoration: underline; font-weight: bold; }
+        .clickable-stat:hover { color: #34d399; }
+
+        /* Estilos do Modal */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; justify-content: center; align-items: center; z-index: 1000; display: none; }
+        .modal-content { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; width: 90%; max-width: 500px; padding: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); position: relative; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
+        .modal-header h3 { color: #fff; font-size: 1.2rem; }
+        .close-modal { background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; padding: 0; }
+        .close-modal:hover { color: #fff; }
+        .modal-body { max-height: 300px; overflow-y: auto; display: grid; gap: 8px; }
+        .modal-item { background: #161616; padding: 10px 14px; border-radius: 6px; border: 1px solid #222; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🎱 Campeonato de Sinuca</h1>
+        <p class="sub">Bar do Tiradentes - Acompanhamento ao Vivo</p>
+    </header>
+
+    <div class="controls">
+        <button id="btnMatches" class="active-view" onclick="switchView('matches')">📅 Confrontos</button>
+        <button id="btnRanking" onclick="switchView('ranking')">🏆 Classificação</button>
+        <select id="filterRodada" onchange="renderMatches()">
+            <option value="all">Todas as Rodadas</option>
+        </select>
+        <button onclick="carregarDados()" style="background: var(--accent-orange); color:#fff; border:none;">🔄 Atualizar</button>
+    </div>
+
+    <div class="container" id="matchesContainer">
+        <div class="loading">Carregando confrontos...</div>
+    </div>
+
+    <!-- Modal de Detalhes -->
+    <div class="modal-overlay" id="modalOverlay" onclick="fecharModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3 id="modalTitle">Detalhes</h3>
+                <button class="close-modal" onclick="fecharModalDireto()">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody"></div>
+        </div>
+    </div>
+
+<script>
+    const jogadores = {
+        1: "Josué", 2: "Dirciano", 3: "Léo", 4: "Rafael", 5: "Bill",
+        6: "Fernando", 7: "Marq. Bananal", 8: "Denis", 9: "Gerson", 10: "Tiago",
+        11: "Tiradentes", 12: "Zeca", 13: "Walmir", 14: "Deí", 15: "Rodrigo MT",
+        16: "Luciano", 17: "Marquinho", 18: "Gabriel", 19: "Juninho", 20: "Tarcísio",
+        21: "Mateus", 22: "Samuel", 23: "Lorinho", 24: "Marcos"
+    };
+
+    let campeonatoData = [];
+    let currentView = 'matches';
+
+    async function carregarDados() {
+        try {
+            const response = await fetch('placar.json?' + new Date().getTime());
+            if (!response.ok) throw new Error("Arquivo placar.json não encontrado.");
+            campeonatoData = await response.json();
+            popularFiltro();
+            renderCurrentView();
+        } catch (error) {
+            document.getElementById('matchesContainer').innerHTML = `
+                <div class="matchday-card" style="text-align: center; color: #ff3c00;">
+                    <h3>⚠️ Erro ao carregar placar.json</h3>
+                    <p style="color: #9ca3af; margin-top: 10px;">Certifique-se de que o arquivo <code>placar.json</code> está na mesma pasta e rodando em um servidor local (Live Server).</p>
+                </div>`;
+        }
+    }
+
+    function popularFiltro() {
+        const select = document.getElementById('filterRodada');
+        const rodadasUnicas = [...new Set(campeonatoData.map(item => item.rodada))];
+        const valorAtual = select.value;
+        
+        select.innerHTML = '<option value="all">Todas as Rodadas</option>';
+        rodadasUnicas.forEach(r => {
+            select.innerHTML += `<option value="${r}">Rodada ${r}</option>`;
+        });
+        select.value = valorAtual;
+    }
+
+    function switchView(view) {
+        currentView = view;
+        document.getElementById('btnMatches').classList.toggle('active-view', view === 'matches');
+        document.getElementById('btnRanking').classList.toggle('active-view', view === 'ranking');
+        
+        const filterSelect = document.getElementById('filterRodada');
+        filterSelect.style.display = (view === 'ranking') ? 'none' : 'inline-block';
+        
+        renderCurrentView();
+    }
+
+    function renderCurrentView() {
+        if (currentView === 'matches') {
+            renderMatches();
+        } else {
+            renderRanking();
+        }
+    }
+
+    function parseMatchDateTime(dataStr, horarioStr) {
+        if (!dataStr || !horarioStr) return new Date(0);
+        const partesData = dataStr.split('/');
+        if (partesData.length < 2) return new Date(0);
+        const dia = parseInt(partesData[0], 10);
+        const mes = parseInt(partesData[1], 10);
+        
+        const partesHora = horarioStr.split(':');
+        const horas = partesHora.length > 0 ? parseInt(partesHora[0], 10) : 0;
+        const minutos = partesHora.length > 1 ? parseInt(partesHora[1], 10) : 0;
+        
+        let ano = 2026;
+        if (mes < 10) ano = 2027;
+        
+        return new Date(ano, mes - 1, dia, horas, minutos);
+    }
+
+    function renderMatches() {
+        const container = document.getElementById('matchesContainer');
+        const filtro = document.getElementById('filterRodada').value;
+        container.innerHTML = '';
+
+        const dadosFiltrados = filtro === 'all' 
+            ? campeonatoData 
+            : campeonatoData.filter(item => item.rodada == filtro);
+
+        if (dadosFiltrados.length === 0) {
+            container.innerHTML = '<div class="loading">Nenhum jogo encontrado.</div>';
+            return;
+        }
+
+        const agora = new Date();
+        const grupos = {};
+        dadosFiltrados.forEach(match => {
+            const key = `${match.rodada} - ${match.dia} (${match.data})`;
+            if (!grupos[key]) grupos[key] = [];
+            grupos[key].push(match);
+        });
+
+        for (let [key, matches] of Object.entries(grupos)) {
+            let cardHtml = `
+                <div class="matchday-card">
+                    <div class="matchday-title">
+                        <span>📅 ${key}</span>
+                    </div>
+                    <div class="matches-grid">
+            `;
+
+            matches.forEach(m => {
+                const p1Nome = jogadores[m.p1] || `Jogador ${m.p1}`;
+                const p2Nome = jogadores[m.p2] || `Jogador ${m.p2}`;
+                
+                const matchDate = parseMatchDateTime(m.data, m.horario);
+                const isDelayed = (m.g1 === 0 && m.g2 === 0) && (matchDate < agora);
+                const delayedClass = isDelayed ? 'delayed' : '';
+                
+                cardHtml += `
+                    <div class="match-item ${delayedClass}">
+                        <div class="match-info">
+                            🕒 ${m.horario}
+                            ${isDelayed ? '<br><span style="font-size:0.75rem; color:var(--accent-red);">⚠️ Atrasado</span>' : ''}
+                        </div>
+                        <div class="match-teams">
+                            <div class="team home">${p1Nome}</div>
+                            <div class="score-box">${m.g1} × ${m.g2}</div>
+                            <div class="team away">${p2Nome}</div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            cardHtml += `</div></div>`;
+            container.innerHTML += cardHtml;
+        }
+    }
+
+    function renderRanking() {
+        const container = document.getElementById('matchesContainer');
+        
+        const stats = {};
+        for (let i = 1; i <= 24; i++) {
+            stats[i] = {
+                id: i,
+                nome: jogadores[i] || `Jogador ${i}`,
+                pontos: 0,
+                vitorias: 0,
+                derrotas: 0,
+                jogos: 0
+            };
+        }
+
+        campeonatoData.forEach(m => {
+            if (m.g1 !== m.g2 && (m.g1 > 0 || m.g2 > 0)) {
+                const p1 = stats[m.p1];
+                const p2 = stats[m.p2];
+                if (!p1 || !p2) return;
+
+                p1.jogos++;
+                p2.jogos++;
+
+                if (m.g1 > m.g2) {
+                    p1.vitorias++;
+                    p1.pontos += 2; // Vitória vale 2 pontos
+                    p2.derrotas++;
+                } else {
+                    p2.vitorias++;
+                    p2.pontos += 2; // Vitória vale 2 pontos
+                    p1.derrotas++;
+                }
+            }
+        });
+
+        const rankingArray = Object.values(stats).sort((a, b) => {
+            if (b.pontos !== a.pontos) return b.pontos - a.pontos;
+            if (b.vitorias !== a.vitorias) return b.vitorias - a.vitorias;
+            return a.derrotas - b.derrotas;
+        });
+
+        let html = `
+            <div class="ranking-card">
+                <div class="matchday-title">
+                    <span>🏆 Tabela de Classificação (Vitória = 2 pts)</span>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table class="ranking-table">
+                        <thead>
+                            <tr>
+                                <th>Pos</th>
+                                <th>Jogador</th>
+                                <th>Pts</th>
+                                <th>J</th>
+                                <th>V</th>
+                                <th>D</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+        `;
+
+        rankingArray.forEach((item, index) => {
+            let posicaoEmoji = `${index + 1}º`;
+            if (index === 0) posicaoEmoji = '🥇 1º';
+            else if (index === 1) posicaoEmoji = '🥈 2º';
+            else if (index === 2) posicaoEmoji = '🥉 3º';
+
+            html += `
+                <tr>
+                    <td><strong>${posicaoEmoji}</strong></td>
+                    <td><strong>${item.nome}</strong></td>
+                    <td><strong style="color:var(--accent-green);">${item.pontos}</strong></td>
+                    <td>${item.jogos}</td>
+                    <td><span class="clickable-stat" onclick="mostrarDetalhes(${item.id}, 'vitorias')">${item.vitorias}</span></td>
+                    <td><span class="clickable-stat" style="color:var(--accent-red);" onclick="mostrarDetalhes(${item.id}, 'derrotas')">${item.derrotas}</span></td>
+                </tr>
+            `;
+        });
+
+        html += `
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+
+        container.innerHTML = html;
+    }
+
+    function mostrarDetalhes(jogadorId, tipo) {
+        const stats = {};
+        for (let i = 1; i <= 24; i++) {
+            stats[i] = { nome: jogadores[i], vitoriasList: [], derrotasList: [] };
+        }
+
+        campeonatoData.forEach(m => {
+            if (m.g1 !== m.g2 && (m.g1 > 0 || m.g2 > 0)) {
+                const infoPartida = `Rodada ${m.rodada} (${m.data})`;
+                if (m.g1 > m.g2) {
+                    stats[m.p1].vitoriasList.push({ adv: jogadores[m.p2], placar: `${m.g1}×${m.g2}`, info: infoPartida });
+                    stats[m.p2].derrotasList.push({ adv: jogadores[m.p1], placar: `${m.g2}×${m.g1}`, info: infoPartida });
+                } else {
+                    stats[m.p2].vitoriasList.push({ adv: jogadores[m.p1], placar: `${m.g2}×${m.g1}`, info: infoPartida });
+                    stats[m.p1].derrotasList.push({ adv: jogadores[m.p2], placar: `${m.g1}×${m.g2}`, info: infoPartida });
+                }
+            }
+        });
+
+        const jogador = stats[jogadorId];
+        const modalTitle = document.getElementById('modalTitle');
+        const modalBody = document.getElementById('modalBody');
+        modalBody.innerHTML = '';
+
+        if (tipo === 'vitorias') {
+            modalTitle.innerText = `Vitórias de ${jogador.nome} (${jogador.vitoriasList.length})`;
+            if (jogador.vitoriasList.length === 0) {
+                modalBody.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:20px;">Nenhuma vitória registrada ainda.</div>`;
+            } else {
+                jogador.vitoriasList.forEach(v => {
+                    modalBody.innerHTML += `
+                        <div class="modal-item">
+                            <span>Venceu <strong>${v.adv}</strong> (${v.placar})</span>
+                            <span style="color:var(--text-muted); font-size:0.8rem;">${v.info}</span>
+                        </div>
+                    `;
+                });
+            }
+        } else {
+            modalTitle.innerText = `Derrotas de ${jogador.nome} (${jogador.derrotasList.length})`;
+            if (jogador.derrotasList.length === 0) {
+                modalBody.innerHTML = `<div style="text-align:center; color:var(--text-muted); padding:20px;">Nenhuma derrota registrada ainda.</div>`;
+            } else {
+                jogador.derrotasList.forEach(d => {
+                    modalBody.innerHTML += `
+                        <div class="modal-item">
+                            <span>Perdeu para <strong>${d.adv}</strong> (${d.placar})</span>
+                            <span style="color:var(--text-muted); font-size:0.8rem;">${d.info}</span>
+                        </div>
+                    `;
+                });
+            }
+        }
+
+        document.getElementById('modalOverlay').style.display = 'flex';
+    }
+
+    function fecharModal(event) {
+        if (event.target.id === 'modalOverlay') {
+            document.getElementById('modalOverlay').style.display = 'none';
+        }
+    }
+
+    function fecharModalDireto() {
+        document.getElementById('modalOverlay').style.display = 'none';
+    }
+
+    carregarDados();
+    setInterval(carregarDados, 5000);
+</script>
+</body>
+</html>
