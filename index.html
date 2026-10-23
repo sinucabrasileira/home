@@ -23,13 +23,18 @@
         h1 { color: #fff; font-size: 1.5rem; margin-bottom: 5px; }
         p.sub { color: var(--text-muted); font-size: 0.85rem; }
 
-        .controls { display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
+        /* Controles limitados e centralizados (Desktop alinhado com o container) */
+        .controls-wrapper { max-width: 900px; margin: 0 auto 20px auto; display: flex; justify-content: center; }
+        .controls { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; width: 100%; justify-content: center; }
+        
         select, button, input[type="text"] { background: var(--card-bg); color: var(--text-color); border: 1px solid var(--border-color); padding: 10px 14px; border-radius: 8px; font-size: 0.9rem; cursor: pointer; }
-        input[type="text"] { cursor: text; width: 100%; max-width: 220px; }
+        input[type="text"] { cursor: text; width: 200px; }
         input[type="text"]::placeholder { color: var(--text-muted); }
         button { background: var(--card-bg); color: var(--text-color); font-weight: 600; border: 1px solid var(--border-color); }
         button:hover { opacity: 0.9; }
         button.active-view { background: var(--accent-green); color: #fff; border-color: var(--accent-green); }
+
+        .tip-mobile { display: none; text-align: center; font-size: 0.75rem; color: var(--accent-green); margin-top: -10px; margin-bottom: 15px; }
 
         .container { max-width: 900px; margin: 0 auto; display: grid; gap: 15px; }
         .matchday-card, .ranking-card { background: var(--card-bg); border-radius: 12px; padding: 15px; border: 1px solid var(--border-color); }
@@ -55,7 +60,6 @@
         table.ranking-table th, table.ranking-table td { padding: 10px 8px; border-bottom: 1px solid var(--border-color); }
         table.ranking-table th { background: #161616; color: var(--accent-green); font-weight: 600; }
         
-        /* Cores suaves para G12 (Verde) e Abaixo (Vermelho leve) */
         tr.qualified-zone { background-color: rgba(16, 185, 129, 0.07); }
         tr.qualified-zone:hover { background-color: rgba(16, 185, 129, 0.12); }
         
@@ -76,12 +80,13 @@
         .modal-item { background: #161616; padding: 10px; border-radius: 6px; border: 1px solid #222; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; }
 
         /* Ajustes Mobile Responsivo */
-        @media (max-width: 600px) {
+        @media (max-width: 768px) {
             body { padding: 8px; }
             header { padding: 12px; margin-bottom: 15px; }
             h1 { font-size: 1.3rem; }
             .controls { flex-direction: column; width: 100%; gap: 8px; }
-            .controls select, .controls input[type="text"], .controls button { width: 100%; max-width: 100%; }
+            .controls select, .controls input[type="text"], .controls button, .controls div { width: 100%; max-width: 100%; }
+            .tip-mobile { display: block; }
             .match-teams { font-size: 0.8rem; gap: 5px; }
             .score-box { min-width: 48px; padding: 4px 6px; font-size: 0.9rem; }
             table.ranking-table th, table.ranking-table td { padding: 8px 6px; font-size: 0.8rem; }
@@ -95,20 +100,24 @@
         <p class="sub">Bar do Tiradentes - Acompanhamento ao Vivo</p>
     </header>
 
-    <div class="controls">
-        <div style="display: flex; gap: 8px; width: 100%; max-width: 400px; justify-content: center;">
-            <button id="btnMatches" class="active-view" style="flex:1;" onclick="switchView('matches')">📅 Confrontos</button>
-            <button id="btnRanking" style="flex:1;" onclick="switchView('ranking')">🏆 Classificação</button>
+    <div class="controls-wrapper">
+        <div class="controls">
+            <div style="display: flex; gap: 8px;">
+                <button id="btnMatches" class="active-view" onclick="switchView('matches')">📅 Confrontos</button>
+                <button id="btnRanking" onclick="switchView('ranking')">🏆 Classificação</button>
+            </div>
+            
+            <select id="filterRodada" onchange="renderMatches()">
+                <option value="all">Todas as Rodadas</option>
+            </select>
+
+            <input type="text" id="searchJogador" placeholder="🔍 Pesquisar jogador..." oninput="renderMatches()">
+
+            <button onclick="carregarDados()" style="background: var(--accent-orange); color:#fff; border:none;">🔄 Atualizar</button>
         </div>
-        
-        <select id="filterRodada" onchange="renderMatches()" style="flex: 1; min-width: 140px;">
-            <option value="all">Todas as Rodadas</option>
-        </select>
-
-        <input type="text" id="searchJogador" placeholder="🔍 Pesquisar jogador..." oninput="renderMatches()">
-
-        <button onclick="carregarDados()" style="background: var(--accent-orange); color:#fff; border:none;">🔄 Atualizar</button>
     </div>
+    
+    <div class="tip-mobile">💡 Dica: Clique no número de vitórias ou derrotas para ver os detalhes.</div>
 
     <div class="container" id="matchesContainer">
         <div class="loading">Carregando confrontos...</div>
@@ -173,8 +182,8 @@
         const filterSelect = document.getElementById('filterRodada');
         const searchInput = document.getElementById('searchJogador');
         
-        filterSelect.style.display = (view === 'ranking') ? 'none' : 'block';
-        searchInput.style.display = (view === 'ranking') ? 'none' : 'block';
+        filterSelect.style.display = (view === 'ranking') ? 'none' : 'inline-block';
+        searchInput.style.display = (view === 'ranking') ? 'none' : 'inline-block';
         
         renderCurrentView();
     }
@@ -296,11 +305,11 @@
 
                 if (m.g1 > m.g2) {
                     p1.vitorias++;
-                    p1.pontos += 2; // Vitória vale 2 pontos
+                    p1.pontos += 2;
                     p2.derrotas++;
                 } else {
                     p2.vitorias++;
-                    p2.pontos += 2; // Vitória vale 2 pontos
+                    p2.pontos += 2;
                     p1.derrotas++;
                 }
             }
@@ -334,12 +343,9 @@
 
         rankingArray.forEach((item, index) => {
             const posicao = index + 1;
-            let posicaoEmoji = `${posicao}º`;
-            if (index === 0) posicaoEmoji = '🥇 1º';
-            else if (index === 1) posicaoEmoji = '🥈 2º';
-            else if (index === 2) posicaoEmoji = '🥉 3º';
+            // Apenas o 1º lugar recebe a medalha de ouro
+            let posicaoEmoji = (index === 0) ? '🥇 1º' : `${posicao}º`;
 
-            // Até 12º classificado fica verde claro, abaixo fica vermelho claro
             const rowClass = (posicao <= 12) ? 'qualified-zone' : 'eliminated-zone';
 
             html += `
