@@ -11,6 +11,7 @@
             --card-bg: #1e1e1e;
             --accent-green: #10b981;
             --accent-orange: #ff3c00;
+            --accent-red: #ef4444;
             --text-color: #e0e0e0;
             --text-muted: #9ca3af;
             --border-color: #2d2d2d;
@@ -60,8 +61,13 @@
         .matchday-title { font-size: 1.1rem; color: var(--accent-orange); margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
         
         .matches-grid { display: grid; gap: 10px; }
-        .match-item { background: #161616; padding: 10px 12px; border-radius: 8px; display: flex; flex-direction: column; gap: 8px; border: 1px solid #222; }
+        .match-item { background: #161616; padding: 10px 12px; border-radius: 8px; display: flex; flex-direction: column; gap: 8px; border: 1px solid #222; transition: all 0.2s ease; }
         
+        /* Estilo para jogos atrasados no painel */
+        .match-item.delayed { border-color: var(--accent-red); background-color: rgba(239, 68, 68, 0.08); }
+        .match-item.delayed .match-header-info { color: var(--accent-red); font-weight: bold; }
+        .match-item.delayed .score-display { border-color: var(--accent-red); color: var(--accent-red); }
+
         .match-header-info { display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem; color: var(--text-muted); border-bottom: 1px solid #222; padding-bottom: 4px; }
         
         .match-teams { display: flex; align-items: center; justify-content: space-between; gap: 6px; width: 100%; }
@@ -108,7 +114,7 @@
         <input type="text" id="searchJogador" placeholder="🔍 Pesquisar jogador..." oninput="renderAdminMatches()">
 
         <div class="file-upload-wrapper">
-            <label class="btn-upload-label">📂 Carregar placar.json</label>
+            <label class="btn-upload-label">📂 Carregar outro JSON</label>
             <input type="file" id="jsonFileInput" accept=".json" onchange="carregarJSONLocal(event)">
         </div>
 
@@ -116,7 +122,7 @@
     </div>
 
     <div class="container" id="adminContainer" style="padding-bottom: 60px;">
-        <div style="text-align:center; padding:40px;">Carregando painel...</div>
+        <div style="text-align:center; padding:40px;">Carregando placar.json do diretório...</div>
     </div>
 
     <button class="save-bar" onclick="baixarJSON()">💾 Salvar / Baixar JSON</button>
@@ -132,6 +138,7 @@
 
     let campeonatoData = [];
 
+    // Tenta carregar o placar.json automaticamente da mesma pasta por padrão
     async function carregarDados() {
         try {
             const response = await fetch('placar.json?' + new Date().getTime());
@@ -142,8 +149,8 @@
         } catch (error) {
             document.getElementById('adminContainer').innerHTML = `
                 <div class="matchday-card" style="text-align: center; color: var(--accent-orange);">
-                    <h3>⚠️ Arquivo placar.json não carregado automaticamente</h3>
-                    <p style="color: var(--text-muted); margin-top: 10px;">Use o botão <strong>"Carregar placar.json"</strong> acima para selecionar o arquivo do seu computador.</p>
+                    <h3>⚠️ placar.json não encontrado automaticamente na pasta</h3>
+                    <p style="color: var(--text-muted); margin-top: 10px;">Como você está abrindo o arquivo localmente, use o botão <strong>"Carregar outro JSON"</strong> acima para selecionar o arquivo do seu computador ou use um servidor local (Live Server).</p>
                 </div>`;
         }
     }
@@ -158,7 +165,7 @@
                 campeonatoData = JSON.parse(e.target.result);
                 popularFiltro();
                 renderAdminMatches();
-                alert("Arquivo 'placar.json' carregado com sucesso!");
+                alert("Arquivo JSON carregado com sucesso!");
             } catch (err) {
                 alert("Erro ao ler o arquivo JSON. Certifique-se de que é um arquivo válido.");
             }
@@ -178,6 +185,23 @@
         select.value = valorAtual;
     }
 
+    function parseMatchDateTime(dataStr, horarioStr) {
+        if (!dataStr || !horarioStr) return new Date(0);
+        const partesData = dataStr.split('/');
+        if (partesData.length < 2) return new Date(0);
+        const dia = parseInt(partesData[0], 10);
+        const mes = parseInt(partesData[1], 10);
+        
+        const partesHora = horarioStr.split(':');
+        const horas = partesHora.length > 0 ? parseInt(partesHora[0], 10) : 0;
+        const minutos = partesHora.length > 1 ? parseInt(partesHora[1], 10) : 0;
+        
+        let ano = 2026;
+        if (mes < 10) ano = 2027;
+        
+        return new Date(ano, mes - 1, dia, horas, minutos);
+    }
+
     function alterarPlacar(indexGlobal, time, valor) {
         if (time === 1) {
             campeonatoData[indexGlobal].g1 = Math.max(0, campeonatoData[indexGlobal].g1 + valor);
@@ -193,6 +217,7 @@
         const termoBusca = document.getElementById('searchJogador').value.toLowerCase().trim();
         container.innerHTML = '';
 
+        const agora = new Date();
         const grupos = {};
         campeonatoData.forEach((m, indexGlobal) => {
             m._idOriginal = indexGlobal;
@@ -227,10 +252,15 @@
                 const p2Nome = jogadores[m.p2] || `Jogador ${m.p2}`;
                 const idx = m._idOriginal;
 
+                const matchDate = parseMatchDateTime(m.data, m.horario);
+                const isDelayed = (m.g1 === 0 && m.g2 === 0) && (matchDate < agora);
+                const delayedClass = isDelayed ? 'delayed' : '';
+
                 cardHtml += `
-                    <div class="match-item">
+                    <div class="match-item ${delayedClass}">
                         <div class="match-header-info">
                             <span>🕒 ${m.horario}</span>
+                            ${isDelayed ? '<span style="color:var(--accent-red); font-weight:bold;">⚠️ Atrasado</span>' : ''}
                         </div>
                         <div class="match-teams">
                             <span class="team-name home">${p1Nome}</span>
