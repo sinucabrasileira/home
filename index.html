@@ -174,7 +174,15 @@
 
     async function carregarDados() {
         try {
-            const response = await fetch('placar.json?' + new Date().getTime());
+            // Força o navegador e o GitHub a ignorarem a cache usando o timestamp (?t=...) e headers de no-store
+            const response = await fetch('placar.json?t=' + new Date().getTime(), {
+                cache: 'no-store',
+                headers: {
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache',
+                    'Expires': '0'
+                }
+            });
             if (!response.ok) throw new Error("Arquivo placar.json não encontrado.");
             campeonatoData = await response.json();
             popularFiltro();
@@ -183,7 +191,7 @@
             document.getElementById('matchesContainer').innerHTML = `
                 <div class="matchday-card" style="text-align: center; color: #ff3c00;">
                     <h3>⚠️ Erro ao carregar placar.json</h3>
-                    <p style="color: #9ca3af; margin-top: 10px;">Certifique-se de que o arquivo <code>placar.json</code> está na mesma pasta e rodando em um servidor local.</p>
+                    <p style="color: #9ca3af; margin-top: 10px;">Certifique-se de que o arquivo <code>placar.json</code> está na mesma pasta.</p>
                 </div>`;
         }
     }
