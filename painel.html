@@ -184,7 +184,6 @@
         const url = `https://api.github.com/repos/${owner}/${repo}/contents/placar.json`;
 
         try {
-            // 1. Obter o SHA atual do ficheiro (exigido pela API do GitHub)
             const getRes = await fetch(url, {
                 headers: { "Authorization": `token ${token}` }
             });
@@ -192,11 +191,9 @@
             const fileData = await getRes.json();
             const sha = fileData.sha;
 
-            // 2. Codificar o novo JSON em Base64
             const jsonString = JSON.stringify(campeonatoData, null, 2);
             const contentBase64 = btoa(unescape(encodeURIComponent(jsonString)));
 
-            // 3. Enviar o commit via PUT para a nuvem
             const putRes = await fetch(url, {
                 method: "PUT",
                 headers: {
@@ -268,9 +265,8 @@
 
         const agora = new Date();
         const grupos = {};
+        
         campeonatoData.forEach((m, indexGlobal) => {
-            m._idOriginal = indexGlobal;
-
             const p1Nome = (jogadores[m.p1] || `Jogador ${m.p1}`).toLowerCase();
             const p2Nome = (jogadores[m.p2] || `Jogador ${m.p2}`).toLowerCase();
 
@@ -280,7 +276,8 @@
             if (atendeRodada && atendeBusca) {
                 const key = `Rodada ${m.rodada} - ${m.dia} (${m.data})`;
                 if (!grupos[key]) grupos[key] = [];
-                grupos[key].push(m);
+                // Guardamos o objeto original juntamente com o seu índice real no array global
+                grupos[key].push({ match: m, originalIndex: indexGlobal });
             }
         });
 
@@ -289,17 +286,19 @@
             return;
         }
 
-        for (let [key, matches] of Object.entries(grupos)) {
+        for (let [key, items] of Object.entries(grupos)) {
             let cardHtml = `
                 <div class="matchday-card">
                     <div class="matchday-title">📅 ${key}</div>
                     <div class="matches-grid">
             `;
 
-            matches.forEach(m => {
+            items.forEach(item => {
+                const m = item.match;
+                const idx = item.originalIndex; // Índice real e seguro no array campeonatoData
+
                 const p1Nome = jogadores[m.p1] || `Jogador ${m.p1}`;
                 const p2Nome = jogadores[m.p2] || `Jogador ${m.p2}`;
-                const idx = m._idOriginal;
 
                 const matchDate = parseMatchDateTime(m.data, m.horario);
                 const isDelayed = (m.g1 === 0 && m.g2 === 0) && (matchDate < agora);
