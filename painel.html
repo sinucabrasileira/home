@@ -91,8 +91,8 @@
 <body>
 
     <header>
-        <h1>🛠️ Painel de Controlo</h1>
-        <p style="color: var(--text-muted); font-size: 0.85rem;">Sincronizado diretamente com o GitHub</p>
+        <h1>🛠️ Painel Administrativo</h1>
+        <p style="color: var(--text-muted); font-size: 0.85rem;">Sincronizado diretamente com o GitHub (Sem Cache)</p>
     </header>
 
     <div class="controls">
@@ -103,14 +103,14 @@
         <input type="text" id="searchJogador" placeholder="🔍 Pesquisar jogador..." oninput="renderAdminMatches()">
 
         <button class="btn-config" onclick="configurarGitHub()">⚙️ Configurar GitHub</button>
-        <button class="btn-main" onclick="salvarNoGitHub()">☁️ Guardar na Nuvem</button>
+        <button class="btn-main" onclick="salvarNoGitHub()">☁️ Salvar na Nuvem</button>
     </div>
 
     <div class="container" id="adminContainer" style="padding-bottom: 60px;">
-        <div style="text-align:center; padding:40px;">A carregar dados do GitHub...</div>
+        <div style="text-align:center; padding:40px;">A carregar dados frescos do GitHub...</div>
     </div>
 
-    <button class="save-bar" onclick="salvarNoGitHub()">☁️ Guardar Alterações na Nuvem</button>
+    <button class="save-bar" onclick="salvarNoGitHub()">☁️ Salvar Alterações na Nuvem</button>
 
 <script>
     const jogadores = {
@@ -142,30 +142,45 @@
         carregarDados();
     }
 
+    // Lê diretamente pela API do GitHub com cache: 'no-store' para evitar dados antigos
     async function carregarDados() {
         const owner = localStorage.getItem('gh_owner');
         const repo = localStorage.getItem('gh_repo');
+        const token = localStorage.getItem('gh_token');
 
         if (!owner || !repo) {
             document.getElementById('adminContainer').innerHTML = `
                 <div class="matchday-card" style="text-align: center; color: var(--accent-orange);">
                     <h3>⚠️ Configuração necessária</h3>
-                    <p style="color: var(--text-muted); margin-top: 10px;">Clica no botão <strong>"⚙️ Configurar GitHub"</strong> acima para ligar o painel ao teu repositório.</p>
+                    <p style="color: var(--text-muted); margin-top: 10px;">Clica no botão <strong>"⚙️ Configurar GitHub"</strong> acima para conectar o painel ao teu repositório.</p>
                 </div>`;
             return;
         }
 
         try {
-            const response = await fetch(`https://raw.githubusercontent.com/${owner}/${repo}/main/placar.json?` + new Date().getTime());
+            const url = `https://api.github.com/repos/${owner}/${repo}/contents/placar.json`;
+            const headers = { "Cache-Control": "no-cache" };
+            if (token) headers["Authorization"] = `token ${token}`;
+
+            const response = await fetch(url, { 
+                headers: headers,
+                cache: 'no-store' // Força o browser a ignorar qualquer cache local
+            });
+
             if (!response.ok) throw new Error();
-            campeonatoData = await response.json();
+            const fileData = await response.json();
+            
+            // Decodificar o conteúdo Base64 da API do GitHub para JSON real
+            const jsonString = decodeURIComponent(escape(atob(fileData.content)));
+            campeonatoData = JSON.parse(jsonString);
+
             popularFiltro();
             renderAdminMatches();
         } catch (error) {
             document.getElementById('adminContainer').innerHTML = `
                 <div class="matchday-card" style="text-align: center; color: var(--accent-red);">
-                    <h3>⚠️ Erro ao carregar o placar.json do GitHub</h3>
-                    <p style="color: var(--text-muted); margin-top: 10px;">Verifica se o repositório, utilizador e a branch ('main') estão corretos nas configurações.</p>
+                    <h3>⚠️ Erro ao carregar dados do GitHub</h3>
+                    <p style="color: var(--text-muted); margin-top: 10px;">Verifica se as configurações e o Token estão corretos.</p>
                 </div>`;
         }
     }
@@ -184,9 +199,10 @@
         const url = `https://api.github.com/repos/${owner}/${repo}/contents/placar.json`;
 
         try {
-            // 1. Obter o SHA atual do ficheiro (exigido pela API do GitHub)
+            // 1. Obter o SHA atual fresco do ficheiro
             const getRes = await fetch(url, {
-                headers: { "Authorization": `token ${token}` }
+                headers: { "Authorization": `token ${token}` },
+                cache: 'no-store'
             });
             if (!getRes.ok) throw new Error("Não foi possível obter o ficheiro do repositório.");
             const fileData = await getRes.json();
