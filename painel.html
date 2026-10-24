@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-PT">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel de Controle - Campeonato de Sinuca</title>
+    <title>Painel de Controlo - Campeonato de Sinuca</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -91,7 +91,7 @@
 <body>
 
     <header>
-        <h1>🛠️ Painel Administrativo</h1>
+        <h1>🛠️ Painel de Controlo</h1>
         <p style="color: var(--text-muted); font-size: 0.85rem;">Sincronizado diretamente com o GitHub</p>
     </header>
 
@@ -103,14 +103,14 @@
         <input type="text" id="searchJogador" placeholder="🔍 Pesquisar jogador..." oninput="renderAdminMatches()">
 
         <button class="btn-config" onclick="configurarGitHub()">⚙️ Configurar GitHub</button>
-        <button class="btn-main" onclick="salvarNoGitHub()">☁️ Salvar na Nuvem</button>
+        <button class="btn-main" onclick="salvarNoGitHub()">☁️ Guardar na Nuvem</button>
     </div>
 
     <div class="container" id="adminContainer" style="padding-bottom: 60px;">
         <div style="text-align:center; padding:40px;">A carregar dados do GitHub...</div>
     </div>
 
-    <button class="save-bar" onclick="salvarNoGitHub()">☁️ Salvar Alterações na Nuvem</button>
+    <button class="save-bar" onclick="salvarNoGitHub()">☁️ Guardar Alterações na Nuvem</button>
 
 <script>
     const jogadores = {
@@ -150,7 +150,7 @@
             document.getElementById('adminContainer').innerHTML = `
                 <div class="matchday-card" style="text-align: center; color: var(--accent-orange);">
                     <h3>⚠️ Configuração necessária</h3>
-                    <p style="color: var(--text-muted); margin-top: 10px;">Clica no botão <strong>"⚙️ Configurar GitHub"</strong> acima para conectar o painel ao teu repositório.</p>
+                    <p style="color: var(--text-muted); margin-top: 10px;">Clica no botão <strong>"⚙️ Configurar GitHub"</strong> acima para ligar o painel ao teu repositório.</p>
                 </div>`;
             return;
         }
@@ -184,6 +184,7 @@
         const url = `https://api.github.com/repos/${owner}/${repo}/contents/placar.json`;
 
         try {
+            // 1. Obter o SHA atual do ficheiro (exigido pela API do GitHub)
             const getRes = await fetch(url, {
                 headers: { "Authorization": `token ${token}` }
             });
@@ -191,9 +192,11 @@
             const fileData = await getRes.json();
             const sha = fileData.sha;
 
+            // 2. Codificar o novo JSON em Base64
             const jsonString = JSON.stringify(campeonatoData, null, 2);
             const contentBase64 = btoa(unescape(encodeURIComponent(jsonString)));
 
+            // 3. Enviar o commit via PUT para a nuvem
             const putRes = await fetch(url, {
                 method: "PUT",
                 headers: {
@@ -209,7 +212,6 @@
 
             if (putRes.ok) {
                 alert("Placar guardado e sincronizado com o GitHub com sucesso! 🚀");
-                carregarDados();
             } else {
                 throw new Error("Falha ao gravar no GitHub.");
             }
@@ -276,7 +278,6 @@
             if (atendeRodada && atendeBusca) {
                 const key = `Rodada ${m.rodada} - ${m.dia} (${m.data})`;
                 if (!grupos[key]) grupos[key] = [];
-                // Guardamos o objeto original juntamente com o seu índice real no array global
                 grupos[key].push({ match: m, originalIndex: indexGlobal });
             }
         });
@@ -295,7 +296,7 @@
 
             items.forEach(item => {
                 const m = item.match;
-                const idx = item.originalIndex; // Índice real e seguro no array campeonatoData
+                const idx = item.originalIndex;
 
                 const p1Nome = jogadores[m.p1] || `Jogador ${m.p1}`;
                 const p2Nome = jogadores[m.p2] || `Jogador ${m.p2}`;
