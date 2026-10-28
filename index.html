@@ -164,7 +164,7 @@
     <!-- Legenda de Cores para auxiliar -->
     <div class="legend-container" id="legendContainer">
         <div class="legend-item"><span class="legend-dot" style="background: var(--accent-green);"></span> Jogo Realizado / Andamento</div>
-        <div class="legend-item"><span class="legend-dot" style="background: var(--accent-blue);"></span> Jogo Adiantado</div>
+        <div class="legend-item"><span class="legend-dot" style="background: var(--accent-blue);"></span> Jogo Adiantado (Placar lançado antes da hora)</div>
         <div class="legend-item"><span class="legend-dot" style="background: var(--accent-red);"></span> Jogo Atrasado</div>
     </div>
     
@@ -316,26 +316,28 @@
                 const p2Nome = jogadores[m.p2] || `Jogador ${m.p2}`;
                 
                 const matchDate = parseMatchDateTime(m.data, m.horario);
-                const temPlacar = (Number(m.g1) > 0 || Number(m.g2) > 0 || m.status === "andamento" || m.status === "registrado");
+                const g1 = Number(m.g1) || 0;
+                const g2 = Number(m.g2) || 0;
+                const temPlacar = (g1 > 0 || g2 > 0 || m.status === "andamento" || m.status === "registrado");
                 
-                // Regras de Status solicitadas:
-                // 1. Atrasado (Vermelho): Se não tem placar e a data/horário já passou
-                // 2. Adiantado (Azul): Se não tem placar e a data/horário ainda está no futuro
-                // 3. Verde: Jogos com placar anotado / em andamento
-                let statusClass = "status-verde";
+                // Nova regra:
+                // 1. Atrasado (Vermelho): Se NÃO tem placar (0x0) e a data/horário já passou.
+                // 2. Adiantado (Azul): Se TEM placar (diferente de 0x0) e a data/horário ainda está no futuro.
+                // 3. Verde: Jogo realizado/em andamento padrão (já passou do horário com placar, ou foi jogado normalmente).
+                let statusClass = "";
                 let statusTexto = "";
 
-                if (temPlacar) {
-                    statusClass = "status-verde";
-                } else if (matchDate < agora) {
+                if (!temPlacar && matchDate < agora) {
                     statusClass = "status-vermelho";
                     statusTexto = '<br><span style="font-size:0.65rem; color:var(--accent-red);">⚠️ Atrasado</span>';
-                } else {
+                } else if (temPlacar && matchDate > agora) {
                     statusClass = "status-azul";
                     statusTexto = '<br><span style="font-size:0.65rem; color:var(--accent-blue);">⏰ Adiantado</span>';
+                } else if (temPlacar || matchDate <= agora) {
+                    statusClass = "status-verde";
                 }
 
-                // Se o JSON já mandar um status específico, respeita ele também
+                // Se o JSON mandar explicitamente o status, respeita a diretriz
                 if (m.status === "atrasado") {
                     statusClass = "status-vermelho";
                     statusTexto = '<br><span style="font-size:0.65rem; color:var(--accent-red);">⚠️ Atrasado</span>';
