@@ -145,14 +145,12 @@
     <button class="save-bar" onclick="salvarNoGitHub()">☁️ Salvar Alterações na Nuvem</button>
 
 <script>
-    // Configuração automática das credenciais embutidas
     const GITHUB_CONFIG = {
         owner: "sinucabrasileira",
         repo: "home",
         token: "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"
     };
 
-    // Função de verificação de senha ao iniciar
     function verificarAutenticacao() {
         let senhaSalva = localStorage.getItem('painel_autenticado');
         
@@ -168,7 +166,6 @@
             }
         }
 
-        // Grava automaticamente o token embutido no storage para o script funcionar direto
         localStorage.setItem('gh_owner', GITHUB_CONFIG.owner);
         localStorage.setItem('gh_repo', GITHUB_CONFIG.repo);
         localStorage.setItem('gh_token', GITHUB_CONFIG.token);
@@ -296,9 +293,9 @@
 
     function alterarPlacar(indexGlobal, time, valor) {
         if (time === 1) {
-            campeonatoData[indexGlobal].g1 = Math.max(0, campeonatoData[indexGlobal].g1 + valor);
+            campeonatoData[indexGlobal].g1 = Math.max(0, (Number(campeonatoData[indexGlobal].g1) || 0) + valor);
         } else {
-            campeonatoData[indexGlobal].g2 = Math.max(0, campeonatoData[indexGlobal].g2 + valor);
+            campeonatoData[indexGlobal].g2 = Math.max(0, (Number(campeonatoData[indexGlobal].g2) || 0) + valor);
         }
         renderAdminMatches();
     }
@@ -384,7 +381,7 @@
                             <div class="score-control-group">
                                 <button class="btn-score" onclick="alterarPlacar(${idx}, 1, -1)">-</button>
                                 <span class="score-display">${m.g1}</span>
-                                <button class="btn-score" onclick="alterarPlaker || alterarPlacar(${idx}, 1, 1)">+</button>
+                                <button class="btn-score" onclick="alterarPlacar(${idx}, 1, 1)">+</button>
                             </div>
 
                             <span style="color:var(--text-muted); font-size: 0.8rem;">×</span>
@@ -406,7 +403,6 @@
         }
     }
 
-    // Executa a verificação da senha antes de carregar
     verificarAutenticacao();
     carregarDados();
 </script>
