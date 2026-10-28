@@ -18,15 +18,26 @@
             --border-color: #2d2d2d;
         }
 
-        /* Barra de rolagem fina */
-        ::-webkit-scrollbar { width: 4px; height: 4px; }
-        ::-webkit-scrollbar-track { background: var(--bg-color); }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--accent-orange); }
+        /* Barra de rolagem ultrafina (3px) e elegante */
+        ::-webkit-scrollbar {
+            width: 3px;
+            height: 3px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-color);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 1px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-green);
+        }
 
+        /* Barra de rolagem ultrafina para Firefox */
         * { 
             scrollbar-width: thin;
-            scrollbar-color: #333 var(--bg-color);
+            scrollbar-color: var(--border-color) var(--bg-color);
             box-sizing: border-box; 
             margin: 0; 
             padding: 0; 
@@ -124,7 +135,7 @@
     <!-- Legenda de Cores -->
     <div class="legend-container">
         <div class="legend-item"><span class="legend-dot" style="background: var(--accent-green);"></span> Jogo Realizado / Andamento</div>
-        <div class="legend-item"><span class="legend-dot" style="background: var(--accent-blue);"></span> Jogo Adiantado</div>
+        <div class="legend-item"><span class="legend-dot" style="background: var(--accent-blue);"></span> Jogo Adiantado (Placar lançado antes da hora)</div>
         <div class="legend-item"><span class="legend-dot" style="background: var(--accent-red);"></span> Jogo Atrasado</div>
     </div>
 
@@ -164,7 +175,6 @@
         carregarDados();
     }
 
-    // Carrega o placar.json sob demanda (sem polling automático para não interferir nas edições)
     async function carregarDados() {
         try {
             const response = await fetch('placar.json?t=' + new Date().getTime(), {
@@ -189,7 +199,6 @@
         }
     }
 
-    // Envia as alterações diretamente para o GitHub via API quando clicas em guardar
     async function salvarNoGitHub() {
         const owner = localStorage.getItem('gh_owner');
         const repo = localStorage.getItem('gh_repo');
@@ -320,21 +329,23 @@
                 const p2Nome = jogadores[m.p2] || `Jogador ${m.p2}`;
 
                 const matchDate = parseMatchDateTime(m.data, m.horario);
-                const temPlacar = (Number(m.g1) > 0 || Number(m.g2) > 0 || m.status === "andamento" || m.status === "registrado");
+                const g1 = Number(m.g1) || 0;
+                const g2 = Number(m.g2) || 0;
+                const temPlacar = (g1 > 0 || g2 > 0 || m.status === "andamento" || m.status === "registrado");
 
-                // Regras de Cores de Status
-                let statusClass = "status-verde";
+                // Regras de Cores de Status atualizadas
+                let statusClass = "";
                 let statusTexto = "";
 
-                if (temPlacar) {
-                    statusClass = "status-verde";
-                    statusTexto = '';
-                } else if (matchDate < agora) {
+                if (!temPlacar && matchDate < agora) {
                     statusClass = "status-vermelho";
                     statusTexto = '<span style="color:var(--accent-red); font-weight:bold;">⚠️ Atrasado</span>';
-                } else {
+                } else if (temPlacar && matchDate > agora) {
                     statusClass = "status-azul";
                     statusTexto = '<span style="color:var(--accent-blue); font-weight:bold;">⏰ Adiantado</span>';
+                } else if (temPlacar || matchDate <= agora) {
+                    statusClass = "status-verde";
+                    statusTexto = '';
                 }
 
                 if (m.status === "atrasado") {
