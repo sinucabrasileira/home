@@ -18,26 +18,26 @@
             --border-color: #2d2d2d;
         }
 
-        /* Barra de rolagem fina estilo Webkit (Chrome, Edge, Safari) */
+        /* Barra de rolagem ultrafina (1px) e elegante */
         ::-webkit-scrollbar {
-            width: 4px;
-            height: 4px;
+            width: 3px;
+            height: 3px;
         }
         ::-webkit-scrollbar-track {
             background: var(--bg-color);
         }
         ::-webkit-scrollbar-thumb {
-            background: #333;
-            border-radius: 4px;
+            background: var(--border-color);
+            border-radius: 1px;
         }
         ::-webkit-scrollbar-thumb:hover {
-            background: var(--accent-orange);
+            background: var(--accent-green);
         }
 
-        /* Barra de rolagem para Firefox */
+        /* Barra de rolagem ultrafina para Firefox */
         * {
             scrollbar-width: thin;
-            scrollbar-color: #33 var(--bg-color);
+            scrollbar-color: var(--border-color) var(--bg-color);
             box-sizing: border-box; 
             margin: 0; 
             padding: 0; 
@@ -320,10 +320,6 @@
                 const g2 = Number(m.g2) || 0;
                 const temPlacar = (g1 > 0 || g2 > 0 || m.status === "andamento" || m.status === "registrado");
                 
-                // Nova regra:
-                // 1. Atrasado (Vermelho): Se NÃO tem placar (0x0) e a data/horário já passou.
-                // 2. Adiantado (Azul): Se TEM placar (diferente de 0x0) e a data/horário ainda está no futuro.
-                // 3. Verde: Jogo realizado/em andamento padrão (já passou do horário com placar, ou foi jogado normalmente).
                 let statusClass = "";
                 let statusTexto = "";
 
@@ -337,7 +333,6 @@
                     statusClass = "status-verde";
                 }
 
-                // Se o JSON mandar explicitamente o status, respeita a diretriz
                 if (m.status === "atrasado") {
                     statusClass = "status-vermelho";
                     statusTexto = '<br><span style="font-size:0.65rem; color:var(--accent-red);">⚠️ Atrasado</span>';
