@@ -10,6 +10,7 @@
             --bg-color: #121212;
             --card-bg: #1e1e1e;
             --accent-green: #10b981;
+            --accent-blue: #0ea5e9;
             --accent-orange: #ff3c00;
             --accent-red: #ef4444;
             --text-color: #e0e0e0;
@@ -36,7 +37,7 @@
         /* Barra de rolagem para Firefox */
         * {
             scrollbar-width: thin;
-            scrollbar-color: #333 var(--bg-color);
+            scrollbar-color: #33 var(--bg-color);
             box-sizing: border-box; 
             margin: 0; 
             padding: 0; 
@@ -67,18 +68,30 @@
         .matchday-title { font-size: 1.1rem; color: var(--accent-green); margin-bottom: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
         
         .matches-grid { display: grid; gap: 10px; }
-        .match-item { background: #161616; padding: 10px 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #222; transition: all 0.2s ease; gap: 8px; }
         
-        .match-item.delayed { border-color: var(--accent-red); background-color: rgba(239, 68, 68, 0.08); }
-        .match-item.delayed .match-info { color: var(--accent-red); font-weight: bold; }
-        .match-item.delayed .score-box { border-color: var(--accent-red); color: var(--accent-red); }
+        /* ESTADOS DOS CONFRONTOS */
+        .match-item { background: #161616; padding: 10px 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border-color); transition: all 0.2s ease; gap: 8px; }
+        
+        /* Padrão / Andamento / Registrado (Verde) */
+        .match-item.status-verde { border-color: var(--accent-green); background-color: rgba(16, 185, 129, 0.05); }
+        .match-item.status-verde .score-box { border-color: var(--accent-green); color: var(--accent-green); }
+
+        /* Adiantado (Azul) */
+        .match-item.status-azul { border-color: var(--accent-blue); background-color: rgba(14, 165, 233, 0.05); }
+        .match-item.status-azul .match-info { color: var(--accent-blue); font-weight: bold; }
+        .match-item.status-azul .score-box { border-color: var(--accent-blue); color: var(--accent-blue); }
+
+        /* Atrasado (Vermelho) */
+        .match-item.status-vermelho { border-color: var(--accent-red); background-color: rgba(239, 68, 68, 0.08); }
+        .match-item.status-vermelho .match-info { color: var(--accent-red); font-weight: bold; }
+        .match-item.status-vermelho .score-box { border-color: var(--accent-red); color: var(--accent-red); }
 
         .match-info { font-size: 0.75rem; color: var(--text-muted); min-width: 75px; text-align: center; }
         .match-teams { display: flex; align-items: center; gap: 8px; flex: 1; justify-content: space-between; font-weight: 600; font-size: 0.9rem; }
         .team { text-align: center; flex: 1; word-break: break-word; }
         .team.home { text-align: right; }
         .team.away { text-align: left; }
-        .score-box { background: #111; border: 1px solid var(--border-color); padding: 5px 10px; border-radius: 6px; font-size: 1rem; font-weight: bold; color: var(--accent-green); min-width: 55px; text-align: center; flex-shrink: 0; }
+        .score-box { background: #111; border: 1px solid var(--border-color); padding: 5px 10px; border-radius: 6px; font-size: 1rem; font-weight: bold; color: var(--text-color); min-width: 55px; text-align: center; flex-shrink: 0; }
         .loading { text-align: center; padding: 40px; color: var(--text-muted); }
 
         /* Estilos da Tabela de Classificação */
@@ -104,6 +117,11 @@
         .close-modal:hover { color: #fff; }
         .modal-body { max-height: 280px; overflow-y: auto; display: grid; gap: 8px; }
         .modal-item { background: #161616; padding: 10px; border-radius: 6px; border: 1px solid #222; display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; }
+
+        /* Legenda de Cores Rápidas */
+        .legend-container { display: flex; gap: 15px; justify-content: center; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 15px; flex-wrap: wrap; }
+        .legend-item { display: flex; align-items: center; gap: 5px; }
+        .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
 
         /* Ajustes Mobile Responsivo */
         @media (max-width: 768px) {
@@ -142,6 +160,13 @@
             <button onclick="carregarDados()" style="background: var(--accent-orange); color:#fff; border:none;">🔄 Atualizar</button>
         </div>
     </div>
+
+    <!-- Legenda de Cores para auxiliar -->
+    <div class="legend-container" id="legendContainer">
+        <div class="legend-item"><span class="legend-dot" style="background: var(--accent-green);"></span> Jogo Realizado / Andamento</div>
+        <div class="legend-item"><span class="legend-dot" style="background: var(--accent-blue);"></span> Jogo Adiantado</div>
+        <div class="legend-item"><span class="legend-dot" style="background: var(--accent-red);"></span> Jogo Atrasado</div>
+    </div>
     
     <div class="tip-mobile">💡 Dica: Clique no número de vitórias ou derrotas para ver os detalhes.</div>
 
@@ -174,7 +199,6 @@
 
     async function carregarDados() {
         try {
-            // Força o navegador e o GitHub a ignorarem a cache usando o timestamp (?t=...) e headers de no-store
             const response = await fetch('placar.json?t=' + new Date().getTime(), {
                 cache: 'no-store',
                 headers: {
@@ -215,9 +239,11 @@
         
         const filterSelect = document.getElementById('filterRodada');
         const searchInput = document.getElementById('searchJogador');
+        const legendContainer = document.getElementById('legendContainer');
         
         filterSelect.style.display = (view === 'ranking') ? 'none' : 'inline-block';
         searchInput.style.display = (view === 'ranking') ? 'none' : 'inline-block';
+        legendContainer.style.display = (view === 'ranking') ? 'none' : 'flex';
         
         renderCurrentView();
     }
@@ -290,14 +316,39 @@
                 const p2Nome = jogadores[m.p2] || `Jogador ${m.p2}`;
                 
                 const matchDate = parseMatchDateTime(m.data, m.horario);
-                const isDelayed = (m.g1 === 0 && m.g2 === 0) && (matchDate < agora);
-                const delayedClass = isDelayed ? 'delayed' : '';
+                const temPlacar = (Number(m.g1) > 0 || Number(m.g2) > 0 || m.status === "andamento" || m.status === "registrado");
+                
+                // Regras de Status solicitadas:
+                // 1. Atrasado (Vermelho): Se não tem placar e a data/horário já passou
+                // 2. Adiantado (Azul): Se não tem placar e a data/horário ainda está no futuro
+                // 3. Verde: Jogos com placar anotado / em andamento
+                let statusClass = "status-verde";
+                let statusTexto = "";
+
+                if (temPlacar) {
+                    statusClass = "status-verde";
+                } else if (matchDate < agora) {
+                    statusClass = "status-vermelho";
+                    statusTexto = '<br><span style="font-size:0.65rem; color:var(--accent-red);">⚠️ Atrasado</span>';
+                } else {
+                    statusClass = "status-azul";
+                    statusTexto = '<br><span style="font-size:0.65rem; color:var(--accent-blue);">⏰ Adiantado</span>';
+                }
+
+                // Se o JSON já mandar um status específico, respeita ele também
+                if (m.status === "atrasado") {
+                    statusClass = "status-vermelho";
+                    statusTexto = '<br><span style="font-size:0.65rem; color:var(--accent-red);">⚠️ Atrasado</span>';
+                } else if (m.status === "adiantado") {
+                    statusClass = "status-azul";
+                    statusTexto = '<br><span style="font-size:0.65rem; color:var(--accent-blue);">⏰ Adiantado</span>';
+                }
                 
                 cardHtml += `
-                    <div class="match-item ${delayedClass}">
+                    <div class="match-item ${statusClass}">
                         <div class="match-info">
                             🕒 ${m.horario}
-                            ${isDelayed ? '<br><span style="font-size:0.65rem; color:var(--accent-red);">⚠️ Atrasado</span>' : ''}
+                            ${statusTexto}
                         </div>
                         <div class="match-teams">
                             <div class="team home">${p1Nome}</div>
