@@ -34,7 +34,6 @@
             background: var(--accent-green);
         }
 
-        /* Barra de rolagem ultrafina para Firefox */
         * { 
             scrollbar-width: thin;
             scrollbar-color: var(--border-color) var(--bg-color);
@@ -135,17 +134,46 @@
     <!-- Legenda de Cores -->
     <div class="legend-container">
         <div class="legend-item"><span class="legend-dot" style="background: var(--accent-green);"></span> Jogo Realizado / Andamento</div>
-        <div class="legend-item"><span class="legend-dot" style="background: var(--accent-blue);"></span> Jogo Adiantado (Placar lançado antes da hora)</div>
+        <div class="legend-item"><span class="legend-dot" style="background: var(--accent-blue);"></span> Jogo Adiantado</div>
         <div class="legend-item"><span class="legend-dot" style="background: var(--accent-red);"></span> Jogo Atrasado</div>
     </div>
 
     <div class="container" id="adminContainer" style="padding-bottom: 60px;">
-        <div style="text-align:center; padding:40px;">A carregar dados... Clica em "Atualizar Dados" se necessário.</div>
+        <div style="text-align:center; padding:40px;">A autenticar e carregar dados...</div>
     </div>
 
     <button class="save-bar" onclick="salvarNoGitHub()">☁️ Salvar Alterações na Nuvem</button>
 
 <script>
+    // Configuração automática das credenciais embutidas
+    const GITHUB_CONFIG = {
+        owner: "sinucabrasileira",
+        repo: "home",
+        token: "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"
+    };
+
+    // Função de verificação de senha ao iniciar
+    function verificarAutenticacao() {
+        let senhaSalva = localStorage.getItem('painel_autenticado');
+        
+        if (senhaSalva !== "true") {
+            let tentativa = prompt("🔒 Digite a senha de acesso ao painel:");
+            if (tentativa === "2026") {
+                localStorage.setItem('painel_autenticado', "true");
+                alert("Acesso autorizado!");
+            } else {
+                alert("Senha incorreta!");
+                document.body.innerHTML = "<h2 style='text-align:center; margin-top:20vh; color:#ef4444;'>🚫 Acesso Negado. Recarregue a página para tentar novamente.</h2>";
+                throw new Error("Acesso negado");
+            }
+        }
+
+        // Grava automaticamente o token embutido no storage para o script funcionar direto
+        localStorage.setItem('gh_owner', GITHUB_CONFIG.owner);
+        localStorage.setItem('gh_repo', GITHUB_CONFIG.repo);
+        localStorage.setItem('gh_token', GITHUB_CONFIG.token);
+    }
+
     const jogadores = {
         1: "Josué", 2: "Dirciano", 3: "Léo", 4: "Rafael", 5: "Bill",
         6: "Fernando", 7: "Marq. Bananal", 8: "Denis", 9: "Gerson", 10: "Tiago",
@@ -157,21 +185,17 @@
     let campeonatoData = [];
 
     function configurarGitHub() {
-        const ownerAtual = localStorage.getItem('gh_owner') || 'sinucabrasileira';
-        const repoAtual = localStorage.getItem('gh_repo') || 'home';
-        const tokenAtual = localStorage.getItem('gh_token') || '';
-
-        const owner = prompt("Insere o teu utilizador ou organização do GitHub:", ownerAtual);
+        const owner = prompt("Insere o teu utilizador ou organização do GitHub:", localStorage.getItem('gh_owner') || GITHUB_CONFIG.owner);
         if (!owner) return;
-        const repo = prompt("Insere o nome do repositório:", repoAtual);
+        const repo = prompt("Insere o nome do repositório:", localStorage.getItem('gh_repo') || GITHUB_CONFIG.repo);
         if (!repo) return;
-        const token = prompt("Insere o teu Personal Access Token do GitHub:", tokenAtual);
+        const token = prompt("Insere o teu Personal Access Token do GitHub:", localStorage.getItem('gh_token') || GITHUB_CONFIG.token);
         if (!token) return;
 
         localStorage.setItem('gh_owner', owner.trim());
         localStorage.setItem('gh_repo', repo.trim());
         localStorage.setItem('gh_token', token.trim());
-        alert("Configurações do GitHub guardadas com sucesso!");
+        alert("Configurações atualizadas com sucesso!");
         carregarDados();
     }
 
@@ -189,7 +213,6 @@
             campeonatoData = await response.json();
             popularFiltro();
             renderAdminMatches();
-            alert("Dados atualizados com sucesso!");
         } catch (error) {
             document.getElementById('adminContainer').innerHTML = `
                 <div class="matchday-card" style="text-align: center; color: var(--accent-red);">
@@ -200,15 +223,9 @@
     }
 
     async function salvarNoGitHub() {
-        const owner = localStorage.getItem('gh_owner');
-        const repo = localStorage.getItem('gh_repo');
-        const token = localStorage.getItem('gh_token');
-
-        if (!owner || !repo || !token) {
-            alert("Por favor, configura primeiro as credenciais do GitHub clicando em '⚙️ Configurar GitHub'.");
-            configurarGitHub();
-            return;
-        }
+        const owner = localStorage.getItem('gh_owner') || GITHUB_CONFIG.owner;
+        const repo = localStorage.getItem('gh_repo') || GITHUB_CONFIG.repo;
+        const token = localStorage.getItem('gh_token') || GITHUB_CONFIG.token;
 
         const url = `https://api.github.com/repos/${owner}/${repo}/contents/placar.json`;
 
@@ -217,7 +234,7 @@
                 headers: { "Authorization": `token ${token}` },
                 cache: 'no-store'
             });
-            if (!getRes.ok) throw new Error("Não foi possível obter o ficheiro do repositório. Verifica as tuas credenciais.");
+            if (!getRes.ok) throw new Error("Não foi possível obter o ficheiro do repositório. Verifica as credenciais.");
             const fileData = await getRes.json();
             const sha = fileData.sha;
 
@@ -333,7 +350,6 @@
                 const g2 = Number(m.g2) || 0;
                 const temPlacar = (g1 > 0 || g2 > 0 || m.status === "andamento" || m.status === "registrado");
 
-                // Regras de Cores de Status atualizadas
                 let statusClass = "";
                 let statusTexto = "";
 
@@ -368,7 +384,7 @@
                             <div class="score-control-group">
                                 <button class="btn-score" onclick="alterarPlacar(${idx}, 1, -1)">-</button>
                                 <span class="score-display">${m.g1}</span>
-                                <button class="btn-score" onclick="alterarPlacar(${idx}, 1, 1)">+</button>
+                                <button class="btn-score" onclick="alterarPlaker || alterarPlacar(${idx}, 1, 1)">+</button>
                             </div>
 
                             <span style="color:var(--text-muted); font-size: 0.8rem;">×</span>
@@ -390,6 +406,8 @@
         }
     }
 
+    // Executa a verificação da senha antes de carregar
+    verificarAutenticacao();
     carregarDados();
 </script>
 </body>
