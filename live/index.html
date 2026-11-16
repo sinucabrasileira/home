@@ -2,93 +2,102 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Placar ao Vivo</title>
+    <title>Placar - Live</title>
+    <!-- Socket.io do Servidor Local -->
+    <script src="/socket.io/socket.io.js"></script>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background: transparent; display: flex; justify-content: center; align-items: flex-start; height: 100vh; padding-top: 20px; }
-        
-        .scoreboard {
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background: #000; color: #fff; display: flex; flex-direction: column; height: 100vh; overflow: hidden; padding: 8px; gap: 6px; }
+
+        .broadcast-header {
+            background: rgba(10, 15, 20, 0.95);
+            border: 1px solid #22c55e;
+            border-radius: 6px;
+            padding: 4px 15px;
             display: flex;
-            background: rgba(15, 15, 20, 0.85);
-            border: 2px solid #22c55e;
-            border-radius: 12px;
-            box-shadow: 0 0 20px rgba(34, 197, 94, 0.4);
-            color: #fff;
-            overflow: hidden;
-            width: 500px;
+            justify-content: space-between;
+            align-items: center;
+            height: 48px;
+            z-index: 10;
+            box-shadow: 0 0 15px rgba(34, 197, 94, 0.3);
+            position: relative;
         }
 
-        .player {
-            flex: 1;
-            padding: 15px;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
+        .header-left { display: flex; flex-direction: column; line-height: 1.2; }
+        .info-jogo { font-size: 12px; font-weight: 800; color: #38bdf8; text-transform: uppercase; }
+        .info-detalhes { font-size: 10px; color: #94a3b8; font-weight: 600; }
 
-        .player:first-child { border-right: 2px solid #22c55e; }
-
-        .name {
-            font-size: 18px;
-            font-weight: bold;
-            color: #a855f7;
-            text-transform: uppercase;
-            margin-bottom: 8px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .score {
-            font-size: 48px;
-            font-weight: 900;
-            color: #f97316;
-            text-shadow: 0 0 10px rgba(249, 115, 22, 0.5);
-        }
-
-        .vs {
+        .scoreboard-preview {
             display: flex;
             align-items: center;
-            justify-content: center;
-            padding: 0 10px;
-            font-size: 14px;
-            font-weight: bold;
-            color: #64748b;
-            background: rgba(0,0,0,0.3);
+            gap: 15px;
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
         }
+
+        .team-side { display: flex; align-items: center; gap: 10px; }
+        .team-side.right { flex-direction: row-reverse; }
+
+        .preview-name { font-size: 14px; font-weight: 800; color: #a855f7; text-transform: uppercase; }
+        .preview-score {
+            font-size: 20px; font-weight: 900; color: #22c55e;
+            background: rgba(0,0,0,0.7); padding: 1px 10px;
+            border-radius: 4px; border: 1px solid #22c55e;
+            min-width: 36px; text-align: center;
+            text-shadow: 0 0 8px rgba(34, 197, 94, 0.6);
+        }
+        .preview-vs { font-size: 11px; font-weight: bold; color: #64748b; }
+        .header-right-spacer { width: 120px; }
+
+        .stream-area {
+            flex: 1; background: #000;
+            border: 2px solid #22c55e; border-radius: 8px;
+            box-shadow: 0 0 25px rgba(34, 197, 94, 0.4), inset 0 0 20px rgba(34, 197, 94, 0.1);
+            display: flex; justify-content: center; align-items: center;
+        }
+        .stream-placeholder-text { color: rgba(34, 197, 94, 0.2); font-size: 18px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; }
     </style>
 </head>
 <body>
 
-    <div class="scoreboard">
-        <div class="player">
-            <div class="name" id="p1-name">Jogador 1</div>
-            <div class="score" id="p1-score">0</div>
+    <header class="broadcast-header">
+        <div class="header-left">
+            <span class="info-jogo" id="view-jogo">Sinuca</span>
+            <span class="info-detalhes"><span id="view-partida">Melhor de 3</span> • <span id="view-valor">R$ 50</span></span>
         </div>
-        <div class="vs">VS</div>
-        <div class="player">
-            <div class="name" id="p2-name">Jogador 2</div>
-            <div class="score" id="p2-score">0</div>
+
+        <div class="scoreboard-preview">
+            <div class="team-side">
+                <span class="preview-name" id="view-p1-name">JOGADOR 1</span>
+                <span class="preview-score" id="view-p1-score">0</span>
+            </div>
+            <span class="preview-vs">X</span>
+            <div class="team-side right">
+                <span class="preview-name" id="view-p2-name">JOGADOR 2</span>
+                <span class="preview-score" id="view-p2-score">0</span>
+            </div>
         </div>
+
+        <div class="header-right-spacer"></div>
+    </header>
+
+    <div class="stream-area">
+        <span class="stream-placeholder-text">Área de Transmissão / Gameplay</span>
     </div>
 
     <script>
-        function atualizarPlacar() {
-            const dados = JSON.parse(localStorage.getItem('placar_dados')) || {
-                p1Name: 'Jogador 1', p1Score: 0,
-                p2Name: 'Jogador 2', p2Score: 0
-            };
+        const socket = io();
 
-            document.getElementById('p1-name').innerText = dados.p1Name;
-            document.getElementById('p1-score').innerText = dados.p1Score;
-            document.getElementById('p2-name').innerText = dados.p2Name;
-            document.getElementById('p2-score').innerText = dados.p2Score;
-        }
-
-        // Atualiza a cada 200ms para refletir as mudanças do painel de controle instantaneamente
-        setInterval(atualizarPlacar, 200);
-        atualizarPlacar();
+        socket.on('atualizar_placar', (estado) => {
+            document.getElementById('view-p1-name').innerText = estado.p1Name;
+            document.getElementById('view-p1-score').innerText = estado.p1Score;
+            document.getElementById('view-p2-name').innerText = estado.p2Name;
+            document.getElementById('view-p2-score').innerText = estado.p2Score;
+            document.getElementById('view-jogo').innerText = estado.jogo;
+            document.getElementById('view-partida').innerText = estado.partida;
+            document.getElementById('view-valor').innerText = estado.valor;
+        });
     </script>
 </body>
 </html>
