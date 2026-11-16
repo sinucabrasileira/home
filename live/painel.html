@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Painel de Controle - Placar</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: #0f172a; color: #f8fafc; padding: 20px; display: flex; justify-content: center; }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: #1e293b;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            border: 1px solid #334155;
+        }
+
+        h2 { text-align: center; margin-bottom: 20px; color: #38bdf8; }
+
+        .row { display: flex; gap: 15px; margin-bottom: 20px; }
+        
+        .box {
+            flex: 1;
+            background: #0f172a;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+        }
+
+        .box h3 { margin-bottom: 10px; font-size: 16px; color: #a855f7; }
+
+        label { display: block; font-size: 12px; color: #94a3b8; margin-bottom: 5px; }
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            background: #1e293b;
+            border: 1px solid #475569;
+            color: #fff;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+
+        .score-control {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #1e293b;
+            padding: 10px;
+            border-radius: 6px;
+        }
+
+        .score-value { font-size: 24px; font-weight: bold; color: #f97316; }
+
+        button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        button:hover { background: #1d4ed8; }
+        button.btn-minus { background: #dc2626; }
+        button.btn-minus:hover { background: #b91c1c; }
+
+        .footer-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .btn-reset {
+            background: #64748b;
+            width: 100%;
+            padding: 10px;
+        }
+        .btn-reset:hover { background: #475569; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Controle de Placar</h2>
+
+        <div class="row">
+            <!-- JOGADOR 1 -->
+            <div class="box">
+                <h3>Jogador 1</h3>
+                <label>Nome:</label>
+                <input type="text" id="input-p1-name" oninput="salvarDados()">
+
+                <label>Placar:</label>
+                <div class="score-control">
+                    <button class="btn-minus" onclick="alterarPontos('p1', -1)">-</button>
+                    <span class="score-value" id="disp-p1-score">0</span>
+                    <button onclick="alterarPontos('p1', 1)">+</button>
+                </div>
+            </div>
+
+            <!-- JOGADOR 2 -->
+            <div class="box">
+                <h3>Jogador 2</h3>
+                <label>Nome:</label>
+                <input type="text" id="input-p2-name" oninput="salvarDados()">
+
+                <label>Placar:</label>
+                <div class="score-control">
+                    <button class="btn-minus" onclick="alterarPontos('p2', -1)">-</button>
+                    <span class="score-value" id="disp-p2-score">0</span>
+                    <button onclick="alterarPontos('p2', 1)">+</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer-controls">
+            <button class="btn-reset" onclick="zerarPlacar()">Zerar Placar (0x0)</button>
+        </div>
+    </div>
+
+    <script>
+        let dados = JSON.parse(localStorage.getItem('placar_dados')) || {
+            p1Name: 'Jogador 1', p1Score: 0,
+            p2Name: 'Jogador 2', p2Score: 0
+        };
+
+        function carregarNaTela() {
+            document.getElementById('input-p1-name').value = dados.p1Name;
+            document.getElementById('disp-p1-score').innerText = dados.p1Score;
+            document.getElementById('input-p2-name').value = dados.p2Name;
+            document.getElementById('disp-p2-score').innerText = dados.p2Score;
+        }
+
+        function salvarDados() {
+            dados.p1Name = document.getElementById('input-p1-name').value || 'Jogador 1';
+            dados.p2Name = document.getElementById('input-p2-name').value || 'Jogador 2';
+            localStorage.setItem('placar_dados', JSON.stringify(dados));
+        }
+
+        function alterarPontos(jogador, valor) {
+            if (jogador === 'p1') {
+                dados.p1Score = Math.max(0, dados.p1Score + valor);
+            } else {
+                dados.p2Score = Math.max(0, dados.p2Score + valor);
+            }
+            localStorage.setItem('placar_dados', JSON.stringify(dados));
+            carregarNaTela();
+        }
+
+        function zerarPlacar() {
+            if (confirm('Deseja realmente zerar o placar?')) {
+                dados.p1Score = 0;
+                dados.p2Score = 0;
+                localStorage.setItem('placar_dados', JSON.stringify(dados));
+                carregarNaTela();
+            }
+        }
+
+        carregarNaTela();
+    </script>
+</body>
+</html>
