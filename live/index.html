@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Placar ao Vivo</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: transparent; display: flex; justify-content: center; align-items: flex-start; height: 100vh; padding-top: 20px; }
+        
+        .scoreboard {
+            display: flex;
+            background: rgba(15, 15, 20, 0.85);
+            border: 2px solid #22c55e;
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.4);
+            color: #fff;
+            overflow: hidden;
+            width: 500px;
+        }
+
+        .player {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .player:first-child { border-right: 2px solid #22c55e; }
+
+        .name {
+            font-size: 18px;
+            font-weight: bold;
+            color: #a855f7;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .score {
+            font-size: 48px;
+            font-weight: 900;
+            color: #f97316;
+            text-shadow: 0 0 10px rgba(249, 115, 22, 0.5);
+        }
+
+        .vs {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 10px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #64748b;
+            background: rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="scoreboard">
+        <div class="player">
+            <div class="name" id="p1-name">Jogador 1</div>
+            <div class="score" id="p1-score">0</div>
+        </div>
+        <div class="vs">VS</div>
+        <div class="player">
+            <div class="name" id="p2-name">Jogador 2</div>
+            <div class="score" id="p2-score">0</div>
+        </div>
+    </div>
+
+    <script>
+        function atualizarPlacar() {
+            const dados = JSON.parse(localStorage.getItem('placar_dados')) || {
+                p1Name: 'Jogador 1', p1Score: 0,
+                p2Name: 'Jogador 2', p2Score: 0
+            };
+
+            document.getElementById('p1-name').innerText = dados.p1Name;
+            document.getElementById('p1-score').innerText = dados.p1Score;
+            document.getElementById('p2-name').innerText = dados.p2Name;
+            document.getElementById('p2-score').innerText = dados.p2Score;
+        }
+
+        // Atualiza a cada 200ms para refletir as mudanças do painel de controle instantaneamente
+        setInterval(atualizarPlacar, 200);
+        atualizarPlacar();
+    </script>
+</body>
+</html>
