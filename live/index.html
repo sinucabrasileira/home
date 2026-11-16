@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sinuca Overlay - Tela Principal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Fundo 100% transparente para o OBS / Streamlabs */
+        html, body {
+            background-color: transparent !important;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .draggable-element {
+            position: absolute;
+            cursor: move;
+            user-select: none;
+            touch-action: none;
+        }
+
+        /* Animação suave para os cards laterais */
+        .side-card {
+            transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Cartões dos Jogadores com acabamento simétrico */
+        .player-card-left {
+            width: 320px;
+            background-color: rgba(0, 0, 0, 0.92);
+            backdrop-filter: blur(8px);
+            border-top: none;
+            border-left: 2px solid #22c55e;
+            border-bottom: 2px solid #22c55e;
+            border-right: none;
+            border-top-left-radius: 28px;
+            border-bottom-left-radius: 28px;
+            border-top-right-radius: 12px;
+            border-bottom-right-radius: 12px;
+            box-shadow: -4px 4px 15px rgba(34, 197, 94, 0.2);
+        }
+
+        .player-card-right {
+            width: 320px;
+            background-color: rgba(0, 0, 0, 0.92);
+            backdrop-filter: blur(8px);
+            border-top: none;
+            border-right: 2px solid #22c55e;
+            border-bottom: 2px solid #22c55e;
+            border-left: none;
+            border-top-right-radius: 28px;
+            border-bottom-right-radius: 28px;
+            border-top-left-radius: 12px;
+            border-bottom-left-radius: 12px;
+            box-shadow: 4px 4px 15px rgba(34, 197, 94, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-transparent text-white font-sans min-h-screen">
+
+    <div class="relative w-screen h-screen overflow-hidden bg-transparent">
+        
+        <!-- Bloco Principal do Topo -->
+        <div class="absolute top-4 left-1/2 -translate-x-1/2 flex items-center justify-center gap-3 z-40">
+            
+            <!-- 1. CARD ESQUERDO: Valor do Jogo e Número de Séries -->
+            <div id="side-card-left" class="side-card opacity-0 -translate-x-6 pointer-events-none w-[280px] bg-[#111]/95 border-2 border-emerald-500 rounded-2xl px-4 py-2.5 shadow-2xl backdrop-blur-md flex flex-col justify-center">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-1 mb-1">
+                    <span class="text-[9px] font-black uppercase tracking-wider text-emerald-400">VALOR DO JOGO</span>
+                    <span id="ov-game-value" class="text-xs font-bold text-white">-</span>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-[9px] font-black uppercase tracking-wider text-slate-400">SÉRIES / MELHOR DE</span>
+                    <span id="ov-series-num" class="text-xs font-bold text-yellow-400">-</span>
+                </div>
+            </div>
+
+            <!-- PLACAR CENTRAL FIXO -->
+            <div class="flex items-center justify-center gap-1.5 shrink-0">
+                <!-- JOGADOR 1 (Esquerda) -->
+                <div class="player-card-left pl-6 pr-4 py-3 flex items-center justify-between backdrop-blur-md z-20">
+                    <div class="text-right overflow-hidden flex-1 mr-3">
+                        <span id="ov-p1-name" class="block font-black text-lg tracking-wider text-white uppercase truncate">ROBINHO</span>
+                    </div>
+                    <div class="bg-black/80 border border-emerald-500/80 rounded-xl px-3.5 py-1 text-center min-w-[58px] shadow-inner shrink-0">
+                        <span id="ov-p1-score" class="text-3xl font-black text-white">00</span>
+                    </div>
+                </div>
+
+                <!-- LOGO CENTRALIZADA -->
+                <div class="relative z-30 flex flex-col items-center shrink-0 -mt-1">
+               <img src="logo.png" class="relative w-16 h-16 rounded-full object-cover bg-slate-900" alt="Logo Sinuca">
+              <div class="absolute -bottom-3.5 bg-red-600/90 border border-red-400/60 text-white text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider backdrop-blur-sm animate-pulse">
+              AO VIVO
+              </div>
+              </div>
+
+                <!-- JOGADOR 2 (Direita) -->
+                <div class="player-card-right pr-6 pl-4 py-3 flex items-center justify-between backdrop-blur-md z-20">
+                    <div class="bg-black/80 border border-emerald-500/80 rounded-xl px-3.5 py-1 text-center min-w-[58px] shadow-inner shrink-0">
+                        <span id="ov-p2-score" class="text-3xl font-black text-white">00</span>
+                    </div>
+                    <div class="text-left overflow-hidden flex-1 ml-3">
+                        <span id="ov-p2-name" class="block font-black text-lg tracking-wider text-white uppercase truncate">DELO</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. CARD DIREITO (PARTIDO / VANTAGEM) -->
+            <div id="side-card-right" class="side-card opacity-0 translate-x-6 pointer-events-none w-[300px] bg-[#111]/95 border-2 border-emerald-500 rounded-2xl px-4 py-3 shadow-2xl backdrop-blur-md flex flex-col justify-center">
+                <div class="text-xs font-bold leading-snug">
+                    <span class="text-[10px] font-black uppercase tracking-wider text-emerald-400 mr-1.5">PARTIDO:</span>
+                    <span id="ov-handicap" class="text-yellow-400">-</span>
+                </div>
+            </div>
+
+        </div>
+
+        <div id="overlay-elements-container"></div>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'sinuca_live_data_v38';
+        const CONFIG_KEY = 'sinuca_live_config_v38';
+        const channel = new BroadcastChannel('sinuca_channel_v38');
+
+        let state = {
+            p1Name: "ROBINHO", p1Score: 0,
+            p2Name: "DELO", p2Score: 0,
+            elements: []
+        };
+
+        let config = {
+            gameValue: "",
+            seriesNum: "",
+            handicapText: "",
+            mode: "timed",
+            intervalMin: 2
+        };
+
+        let timerInstance = null;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadAll();
+            renderOverlay();
+            setupCycle();
+        });
+
+        channel.onmessage = (event) => {
+            if (event.data.type === 'SCORE_UPDATE') {
+                state = event.data.state;
+                renderScores();
+            } else if (event.data.type === 'CONFIG_UPDATE') {
+                config = event.data.config;
+                renderCardsContent();
+                setupCycle();
+            }
+        };
+
+        window.addEventListener('storage', (e) => {
+            loadAll();
+            renderOverlay();
+            setupCycle();
+        });
+
+        function loadAll() {
+            const savedState = localStorage.getItem(STORAGE_KEY);
+            if (savedState) { try { state = JSON.parse(savedState); } catch(e) {} }
+
+            const savedConfig = localStorage.getItem(CONFIG_KEY);
+            if (savedConfig) { try { config = JSON.parse(savedConfig); } catch(e) {} }
+        }
+
+        function renderScores() {
+            document.getElementById('ov-p1-name').innerText = state.p1Name;
+            document.getElementById('ov-p1-score').innerText = String(state.p1Score).padStart(2, '0');
+            document.getElementById('ov-p2-name').innerText = state.p2Name;
+            document.getElementById('ov-p2-score').innerText = String(state.p2Score).padStart(2, '0');
+        }
+
+        function renderCardsContent() {
+            document.getElementById('ov-game-value').innerText = config.gameValue;
+            document.getElementById('ov-series-num').innerText = config.seriesNum;
+            document.getElementById('ov-handicap').innerText = config.handicapText;
+        }
+
+        function showSideCards(show) {
+            const cardLeft = document.getElementById('side-card-left');
+            const cardRight = document.getElementById('side-card-right');
+
+            // Se o modo for "none", força sempre escondido
+            if (config.mode === 'none') {
+                show = false;
+            }
+
+            if (show) {
+                cardLeft.classList.remove('opacity-0', '-translate-x-6', 'pointer-events-none');
+                cardLeft.classList.add('opacity-100', 'translate-x-0');
+
+                cardRight.classList.remove('opacity-0', 'translate-x-6', 'pointer-events-none');
+                cardRight.classList.add('opacity-100', 'translate-x-0');
+            } else {
+                cardLeft.classList.remove('opacity-100', 'translate-x-0');
+                cardLeft.classList.add('opacity-0', '-translate-x-6', 'pointer-events-none');
+
+                cardRight.classList.remove('opacity-100', 'translate-x-0');
+                cardRight.classList.add('opacity-0', 'translate-x-6', 'pointer-events-none');
+            }
+        }
+
+        function setupCycle() {
+            if (timerInstance) clearInterval(timerInstance);
+
+            renderScores();
+            renderCardsContent();
+
+            if (config.mode === 'none') {
+                showSideCards(false);
+            } else if (config.mode === 'fixed') {
+                showSideCards(true);
+            } else {
+                showSideCards(false);
+                
+                const intervalMs = Math.max(0.5, parseFloat(config.intervalMin) || 2) * 60 * 1000;
+
+                setTimeout(() => {
+                    if (config.mode === 'timed') {
+                        showSideCards(true);
+                        setTimeout(() => {
+                            if (config.mode === 'timed') showSideCards(false);
+                        }, 15000);
+                    }
+                }, 5000);
+
+                timerInstance = setInterval(() => {
+                    if (config.mode === 'timed') {
+                        showSideCards(true);
+                        setTimeout(() => {
+                            if (config.mode === 'timed') showSideCards(false);
+                        }, 15000);
+                    }
+                }, intervalMs);
+            }
+        }
+
+        function renderOverlay() {
+            renderScores();
+            renderCardsContent();
+            if (config.mode === 'fixed') {
+                showSideCards(true);
+            } else if (config.mode === 'none') {
+                showSideCards(false);
+            }
+        }
+    </script>
+</body>
+</html>

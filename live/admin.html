@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Controle - Sinuca Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-white font-sans min-h-screen p-4 pb-24">
+
+    <div class="max-w-xl mx-auto space-y-6">
+        <div class="flex justify-between items-center border-b border-slate-800 pb-4">
+            <h2 class="text-xl font-bold text-emerald-400">🎮 Painel de Controle (Admin)</h2>
+            <span class="text-xs bg-emerald-950 text-emerald-400 border border-emerald-800 px-3 py-1 rounded-lg">Online</span>
+        </div>
+
+        <!-- Placar (Atualização Instantânea Automática) -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
+            <h3 class="text-sm font-semibold text-slate-400 mb-4 uppercase tracking-wider">Placar (Tempo Real Automático)</h3>
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-center">
+                    <input type="text" id="adm-p1-name" oninput="saveScoreLive()" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-center font-bold mb-3 text-sm focus:outline-none focus:border-emerald-500" value="ROBINHO">
+                    <div id="adm-p1-score" class="text-4xl font-black text-white mb-3">0</div>
+                    <div class="flex justify-center gap-2">
+                        <button onclick="modifyScore('p1', -1)" class="bg-rose-600 hover:bg-rose-500 px-3 py-1.5 rounded font-bold text-sm">-</button>
+                        <button onclick="modifyScore('p1', 1)" class="bg-emerald-600 hover:bg-emerald-500 px-4 py-1.5 rounded font-bold text-sm">+1</button>
+                    </div>
+                </div>
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-center">
+                    <input type="text" id="adm-p2-name" oninput="saveScoreLive()" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-center font-bold mb-3 text-sm focus:outline-none focus:border-emerald-500" value="DELO">
+                    <div id="adm-p2-score" class="text-4xl font-black text-white mb-3">0</div>
+                    <div class="flex justify-center gap-2">
+                        <button onclick="modifyScore('p2', -1)" class="bg-rose-600 hover:bg-rose-500 px-3 py-1.5 rounded font-bold text-sm">-</button>
+                        <button onclick="modifyScore('p2', 1)" class="bg-emerald-600 hover:bg-emerald-500 px-4 py-1.5 rounded font-bold text-sm">+1</button>
+                    </div>
+                </div>
+            </div>
+            <button onclick="resetScores()" class="w-full mt-4 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs py-2 rounded-lg transition font-medium">Zerar Placar</button>
+        </div>
+
+        <!-- Informações Detalhadas e Comportamento dos Cards (Exige clique em Atualizar e Salvar) -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+            <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-wider">Cards Laterais (Exigem "Atualizar e Salvar")</h3>
+            
+            <div>
+                <label class="block text-xs text-slate-400 mb-1">Valor do Jogo</label>
+                <input type="text" id="adm-game-value" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-500" value="R$ 500,00">
+            </div>
+            <div>
+                <label class="block text-xs text-slate-400 mb-1">Número de Séries / Melhor de</label>
+                <input type="text" id="adm-series-num" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-500" value="MD3 (Melhor de 3)">
+            </div>
+            <div>
+                <label class="block text-xs text-slate-400 mb-1">Partido / Vantagem</label>
+                <textarea id="adm-handicap" rows="2" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-500">Maycon tem as brancas e Lorinho tem as pretas</textarea>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 pt-2 border-t border-slate-800">
+                <div>
+                    <label class="block text-xs text-slate-400 mb-1">Comportamento dos Cards</label>
+                    <select id="adm-mode" onchange="toggleModeFields()" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-500">
+                        <option value="timed">Mudar a cada X minutos</option>
+                        <option value="fixed">Deixar Fixo na Tela</option>
+                        <option value="none">Nenhum (Desligado)</option>
+                    </select>
+                </div>
+                <div id="interval-container">
+                    <label class="block text-xs text-slate-400 mb-1">Intervalo (Minutos)</label>
+                    <input type="number" id="adm-interval" min="0.5" step="0.5" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-emerald-500" value="2">
+                </div>
+            </div>
+
+            <!-- Botão de Atualizar e Salvar Específico -->
+            <button onclick="saveConfigAndApply()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-emerald-900/40 mt-2">
+                💾 Atualizar e Salvar na Live
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'sinuca_live_data_v38';
+        const CONFIG_KEY = 'sinuca_live_config_v38';
+        const channel = new BroadcastChannel('sinuca_channel_v38');
+
+        let state = {
+            p1Name: "ROBINHO", p1Score: 0,
+            p2Name: "DELO", p2Score: 0,
+            elements: []
+        };
+
+        let config = {
+            gameValue: "R$ 500,00",
+            seriesNum: "MD3 (Melhor de 3)",
+            handicapText: "Maycon tem as brancas e Lorinho tem as pretas",
+            mode: "timed",
+            intervalMin: 2
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadAll();
+            renderAdmin();
+        });
+
+        function loadAll() {
+            const savedState = localStorage.getItem(STORAGE_KEY);
+            if (savedState) { try { state = JSON.parse(savedState); } catch(e) {} }
+
+            const savedConfig = localStorage.getItem(CONFIG_KEY);
+            if (savedConfig) { try { config = JSON.parse(savedConfig); } catch(e) {} }
+        }
+
+        // --- PLACAR: Atualização instantânea automática ---
+        function saveScoreLive() {
+            state.p1Name = document.getElementById('adm-p1-name').value;
+            state.p2Name = document.getElementById('adm-p2-name').value;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+            channel.postMessage({ type: 'SCORE_UPDATE', state: state });
+        }
+
+        function modifyScore(player, delta) {
+            if (player === 'p1') state.p1Score = Math.max(0, state.p1Score + delta);
+            if (player === 'p2') state.p2Score = Math.max(0, state.p2Score + delta);
+            
+            document.getElementById('adm-p1-score').innerText = state.p1Score;
+            document.getElementById('adm-p2-score').innerText = state.p2Score;
+            saveScoreLive();
+        }
+
+        function resetScores() {
+            state.p1Score = 0;
+            state.p2Score = 0;
+            document.getElementById('adm-p1-score').innerText = 0;
+            document.getElementById('adm-p2-score').innerText = 0;
+            saveScoreLive();
+        }
+
+        // --- CARDS LATERAIS: Só atualizam ao clicar no botão de Salvar ---
+        function toggleModeFields() {
+            const mode = document.getElementById('adm-mode').value;
+            const container = document.getElementById('interval-container');
+            if (mode === 'fixed' || mode === 'none') {
+                container.style.display = 'none';
+            } else {
+                container.style.display = 'block';
+            }
+        }
+
+        function saveConfigAndApply() {
+            config.gameValue = document.getElementById('adm-game-value').value;
+            config.seriesNum = document.getElementById('adm-series-num').value;
+            config.handicapText = document.getElementById('adm-handicap').value;
+            config.mode = document.getElementById('adm-mode').value;
+            config.intervalMin = parseFloat(document.getElementById('adm-interval').value) || 2;
+
+            localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
+            channel.postMessage({ type: 'CONFIG_UPDATE', config: config });
+
+            alert("✅ Configurações dos cards atualizadas e salvas na live com sucesso!");
+        }
+
+        function renderAdmin() {
+            document.getElementById('adm-p1-name').value = state.p1Name;
+            document.getElementById('adm-p1-score').innerText = state.p1Score;
+            document.getElementById('adm-p2-name').value = state.p2Name;
+            document.getElementById('adm-p2-score').innerText = state.p2Score;
+
+            document.getElementById('adm-game-value').value = config.gameValue;
+            document.getElementById('adm-series-num').value = config.seriesNum;
+            document.getElementById('adm-handicap').value = config.handicapText;
+            document.getElementById('adm-mode').value = config.mode;
+            document.getElementById('adm-interval').value = config.intervalMin;
+
+            toggleModeFields();
+        }
+    </script>
+</body>
+</html>
